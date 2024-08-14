@@ -19,7 +19,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install sphinx sphinx_rtd_theme myst_parser nbsphinx jupyterlab notebook
+          pip install sphinx sphinx_rtd_theme myst_parser nbsphinx jupyterlab notebook matplotlib
           
       - name: Sphinx build
         run: |
