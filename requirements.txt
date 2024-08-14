@@ -4,6 +4,7 @@ nbsphinx
 nibabel
 numpy
 scipy
-skimage
+scikit-image
+subprocess
 torch
 time
