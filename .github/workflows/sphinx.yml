@@ -23,7 +23,7 @@ jobs:
           
       - name: Sphinx build
         run: |
-          sphinx-build docs docs/_build
+          sphinx-build docs _build
           # sphinx-build -m html src docs/_build
       
       #- name: make the sphinx docs
