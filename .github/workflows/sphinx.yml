@@ -20,11 +20,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install sphinx sphinx_rtd_theme myst_parser nbsphinx
-                
-      - name: make the sphinx docs
+          
+      - name: Sphinx build
         run: |
-          make -C docs clean
-          make -C docs html
+          sphinx-build docs docs/_build
+          # sphinx-build -m html src docs/_build
+      
+      #- name: make the sphinx docs
+      #  run: |
+      #    make -C docs clean
+      #    make -C docs html
 
       - name: Init new repo in dist folder and commit generated files
         run: |
@@ -43,10 +48,8 @@ jobs:
           branch: gh-pages
           force: true
           directory: ./docs/_build/html
-      #- name: Sphinx build
-      #  run: |
-      #    sphinx-build docs docs/_build
-      #    # sphinx-build -m html src docs/_build
+          
+
 
 
           
