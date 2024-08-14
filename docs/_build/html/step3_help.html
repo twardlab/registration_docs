@@ -1,0 +1,245 @@
+
+
+<!doctype html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Step 3 helper functions &#8212; Mouse Brain Atlas Registration 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="_static/bizstyle.css?v=532c1bf3" />
+    
+    <script src="_static/documentation_options.js?v=2709fde1"></script>
+    <script src="_static/doctools.js?v=888ff710"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script src="_static/bizstyle.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Neuron registration" href="step3_atlas_registration.html" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <!--[if lt IE 9]>
+    <script src="_static/css3-mediaqueries.js"></script>
+    <![endif]-->
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="step3_atlas_registration.html" title="Neuron registration"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="step3.html" accesskey="U">(Step 3) Neuron Registration</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Step 3 helper functions</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="module-step3_help">
+<span id="step-3-helper-functions"></span><h1>Step 3 helper functions<a class="headerlink" href="#module-step3_help" title="Link to this heading">¶</a></h1>
+<p>Contains a set of functions used to assist with the preprocessing and computation steps in step3_atlas_registration.py</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="step3_help.ClassHack">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">ClassHack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.ClassHack" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>This class provides methods that my unpickling requires, but doesn’t do anything</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="step3_help.ClassHack.delaxes">
+<span class="sig-name descname"><span class="pre">delaxes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.ClassHack.delaxes" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="step3_help.ClassHack.pick">
+<span class="sig-name descname"><span class="pre">pick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.ClassHack.pick" title="Link to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="step3_help.Unpickler">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">Unpickler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fix_imports</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">encoding</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'ASCII'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'strict'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">buffers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.Unpickler" title="Link to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Unpickler</span></code></p>
+<p>An unpickler which can ignore old matplotlib figures stored in a dictionary</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="step3_help.Unpickler.find_class">
+<span class="sig-name descname"><span class="pre">find_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.Unpickler.find_class" title="Link to this definition">¶</a></dt>
+<dd><p>Return an object from a specified module.</p>
+<p>If necessary, the module will be imported. Subclasses may override
+this method (e.g. to restrict unpickling of arbitrary classes and
+functions).</p>
+<p>This method is called whenever a class or a function object is
+needed.  Both arguments passed are str objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.backup_unpickle">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">backup_unpickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reg_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.backup_unpickle" title="Link to this definition">¶</a></dt>
+<dd><p>A function used to load the low-to-high registration transform file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>reg_file</strong> (<em>str</em>) – A file path pointing to the location of a low-to-high registration transform file (.npz)</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – A dictionary containing the data stored in reg_file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.get_xyzoff">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">get_xyzoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">brain</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neuron_dir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.get_xyzoff" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the offset in soma coordinates using the .swc file located at fname.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – A string pointing to the file to load</p></li>
+<li><p><strong>brain</strong> (<em>str</em>) – The name of the dataset in which the neuron lies; Used to determine how to compute the offset from the file</p></li>
+<li><p><strong>neuron_dir</strong> (<em>str</em>) – The directory in which fname lies; Used to determine how to compute the offset from the file</p></li>
+<li><p><strong>skip</strong> (<em>int</em>) – Number of lines to skip at the beginning. (default 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>xyzoff</strong> – the x, y, z offsets between fname and first line of the .swc file stored at fname</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Array of ints</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.load_swc">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">load_swc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fname</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">skip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.load_swc" title="Link to this definition">¶</a></dt>
+<dd><p>load an swc file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em>) – A string pointing to the file to load</p></li>
+<li><p><strong>skip</strong> (<em>int</em>) – Number of lines to skip at the beginning. (default 0)</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>V</strong> (<em>numpy array of float</em>) – An array storing vertices</p></li>
+<li><p><strong>E</strong> (<em>numpy array of int</em>) – An array storing edges.  they are ordered as parent -&gt; this sample</p></li>
+<li><p><strong>R</strong> (<em>numpy array of float</em>) – An arrow storing radii</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.str_to_list">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">str_to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.str_to_list" title="Link to this definition">¶</a></dt>
+<dd><p>A function which takes a list formatted as a string and converts it to a list of the correct shape</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>mat</strong> (<em>str</em>) – A string of the form ‘[[a],…[b,c]]’ where each element in the list is a single or tuple consisting of strings containing only alphanumeric characters which correspond to the id of each slice</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>mat</strong> – A list containing the elements of the input, now formatted as a list of singles and tuples with alphanumeric strings for each element</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Step 3 helper functions</a><ul>
+<li><a class="reference internal" href="#step3_help.ClassHack"><code class="docutils literal notranslate"><span class="pre">ClassHack</span></code></a><ul>
+<li><a class="reference internal" href="#step3_help.ClassHack.delaxes"><code class="docutils literal notranslate"><span class="pre">ClassHack.delaxes()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.ClassHack.pick"><code class="docutils literal notranslate"><span class="pre">ClassHack.pick()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#step3_help.Unpickler"><code class="docutils literal notranslate"><span class="pre">Unpickler</span></code></a><ul>
+<li><a class="reference internal" href="#step3_help.Unpickler.find_class"><code class="docutils literal notranslate"><span class="pre">Unpickler.find_class()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#step3_help.backup_unpickle"><code class="docutils literal notranslate"><span class="pre">backup_unpickle()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.get_xyzoff"><code class="docutils literal notranslate"><span class="pre">get_xyzoff()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.load_swc"><code class="docutils literal notranslate"><span class="pre">load_swc()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.str_to_list"><code class="docutils literal notranslate"><span class="pre">str_to_list()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="step3_atlas_registration.html"
+                          title="previous chapter">Neuron registration</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/step3_help.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="step3_atlas_registration.html" title="Neuron registration"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="step3.html" >(Step 3) Neuron Registration</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Step 3 helper functions</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Andrew Bennecke.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.2.6.
+    </div>
+  </body>
+</html>
