@@ -5,6 +5,5 @@ nibabel
 numpy
 scipy
 skimage
-subprocess
 torch
 time
