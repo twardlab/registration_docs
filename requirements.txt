@@ -6,4 +6,3 @@ numpy
 scipy
 scikit-image
 torch
-time
