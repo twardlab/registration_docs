@@ -3,7 +3,6 @@ matplotlib
 nbsphinx
 nibabel
 numpy
-pickle
 scipy
 skimage
 subprocess
