@@ -7,6 +7,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    # List out all of the actions to be taken
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
