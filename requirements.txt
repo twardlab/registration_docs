@@ -3,11 +3,9 @@ matplotlib
 nbsphinx
 nibabel
 numpy
-os
 pickle
 scipy
 skimage
 subprocess
-sys
 torch
 time
