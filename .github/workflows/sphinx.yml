@@ -20,17 +20,41 @@ jobs:
       - name: Install dependencies
         run: |
           pip install sphinx sphinx_rtd_theme myst_parser nbsphinx
-          
-      - name: Sphinx build
+                
+      - name: make the sphinx docs
         run: |
-          sphinx-build docs docs/_build
-          # sphinx-build -m html src docs/_build
-          
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          make -C docs clean
+          make -C docs html
+
+      - name: Init new repo in dist folder and commit generated files
+        run: |
+          cd docs/_build/html/
+          git init
+          touch .nojekyll
+          git add -A
+          git config --local user.email "action@github.com"
+          git config --local user.name "Github Action"
+          git commit -m 'deploy'
+
+      - name: Force push to destination branch
+        uses: ad-m/github-push-action@v0.5.0
         with:
-          publish_branch: gh-pages
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: _build/
-          force_orphan: true
+          branch: gh-pages
+          force: true
+          directory: ./docs/_build/html
+      #- name: Sphinx build
+      #  run: |
+      #    sphinx-build docs docs/_build
+      #    # sphinx-build -m html src docs/_build
+
+
+          
+      #- name: Deploy to GitHub Pages
+      #  uses: peaceiris/actions-gh-pages@v3
+      #  if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      #  with:
+      #    publish_branch: gh-pages
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    publish_dir: _build/
+      #    force_orphan: true
