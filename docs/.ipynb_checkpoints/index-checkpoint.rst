@@ -14,7 +14,6 @@ Welcome to the mouse brain registration documentation!
    step1
    step2
    step3
-   registration_scripts
 
 Indices and tables
 ==================
