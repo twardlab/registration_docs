@@ -5,6 +5,7 @@ on: [push, pull_request, workflow_dispatch]
 # permissions:
 #   contents: write
 
+# Define the set of actions
 jobs:
   docs:
     runs-on: ubuntu-latest
