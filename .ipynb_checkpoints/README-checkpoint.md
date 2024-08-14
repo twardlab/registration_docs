@@ -1,1 +1,0 @@
-# registration_docs_v1
