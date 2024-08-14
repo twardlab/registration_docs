@@ -1,6 +1,5 @@
 argparse
 matplotlib
-mpl_toolkits
 nbsphinx
 nibabel
 numpy
