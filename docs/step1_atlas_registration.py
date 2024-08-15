@@ -22,7 +22,7 @@ def main():
         The name of the dataset to be registered. This will be included in the names of the majority of the output files.
     orientation : char
         The portion of the brain captured by this dataset (W - whole, L - left hemisphere, R - right hemisphere)
-    -low : str or list of str
+    -low_paths : str or list of str
         1 or more file paths pointing to the location(s) of the low resolution mouse brain images (.npz) in Anterior to Posterior order
     -outdir : str
         The path to the directory where all outputs will be stored
@@ -32,34 +32,36 @@ def main():
         A list of the indeces of the slices from '-low' that need to flipped so that they are all the same orientation
     -device : str
         The device for torch computation (Options: 'cpu', 'cuda:0', 'cuda:1', 'mps')
-    --A : str
+    -A : str
         The 4x4 affine matrix used to estimate an initial guess for the registration algorithm. Should be of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project
-    --AJ : list of str
+    -AJ : list of str
         A list of 4x4 affine matrices used to estimate an initial guess for each slice to be used in the registration algorithm. Should be a list of the same length as the number of slices and each element must be of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project
-    --dslice : int
+    -dslice : int
         Default - 500; The thickness of the slab(s) within the dataset, in units of um
     -e_path : str
         The location of the custom Python library 'emlddmm', which can be cloned from GitHub at https://github.com/twardlab/emlddmm
     -d_path : str
         The location of the custom Python library 'donglab_workflows', which be cloned from GitHub at https://github.com/twardlab/donglab_workflows
+        
     -save_fig0 : bool
-        Default - False; If True, save histogram of voxel values in outdir
+        Default - False; If present, save histogram of voxel values in outdir
     -save_fig1 : bool
-        Default - False; If True, save figure showing MIP of every slice in outdir
+        Default - False; If present, save figure showing MIP of every slice in outdir
     -save_fig2 : bool
-        Default - False; If True, save figure showing where data is missing from low-res images in outdir
+        Default - False; If present, save figure showing where data is missing from low-res images in outdir
     -save_fig3 : bool
-        Default - False; If True, save figure displaying the trapezoid function in outdir
+        Default - False; If present, save figure displaying the trapezoid function in outdir
     -save_fig4 : bool
-        Default - False; If True, save figure displaying a map of the edges of the atlas in outdir
+        Default - False; If present, save figure displaying a map of the edges of the atlas in outdir
     -save_fig5 : bool
-        Default - False; If True, save figure displaying the inner product which allows us to perform gradient descent in outdir
+        Default - False; If present, save figure displaying the inner product which allows us to perform gradient descent in outdir
     -save_fig6 : bool
-        Default - False; If True, save figure displaying the 12x12 matrices gid and gJid in outdir
-    --normalizeData : str
-        Default - 'True'; Choices - ['True','False']; If True, normalize input data to [0,1]
-    --zeroMean : str    
-        Default - 'True'; Choices - ['True','False']; If True, use the zero mean convention when loading input data
+        Default - False; If present, save figure displaying the 12x12 matrices gid and gJid in outdir
+
+    --normalizeData : bool
+        Default - True; If True, normalize input data to [0,1]
+    --zeroMean : bool
+        Default - True; If True, use the zero mean convention when loading all input data
     --largerRGBfig : bool
         Default - False; If True, Include 8 panels for each orientation in the figRGB outputs during regstration, otherwise include 5 panels
         
@@ -84,35 +86,38 @@ def main():
     # Subparser for a new brain
     parser.add_argument('dataset', type=str,help = 'Name of dataset to be processed')
     parser.add_argument('orientation', type = str, choices = ['W','L','R'], help = 'The portion of the brain shown in the dataset (Whole, Left hemisphere, Right hemisphere)')
-    parser.add_argument('-low', type = str, nargs='*', required = True, help = 'List of low-res files in Anterior to Posterior order')
+    parser.add_argument('-low_paths', type = str, nargs='*', required = True, help = 'List of low-res files in Anterior to Posterior order')
     parser.add_argument('-outdir', type = str, required = True, help = 'Output directory for all files generated from this script')
     parser.add_argument('-atlas_paths', type = str, nargs = 3, required = True, help = 'List of 3 allen atlas .vtk files')
     parser.add_argument('-to_flip', nargs = '*', type=int, default = -1, help = 'Indices of which slices to flip from low_res_files')
     parser.add_argument('-device', type=str, choices = ['cpu', 'cuda:0', 'cuda:1', 'mps'], required = True, help = 'Device for torch computations')
-    parser.add_argument('--A', type = str, help = 'Initial guess - [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
-    parser.add_argument('--AJ', type = str, nargs = '*', help = 'A list of initial shifts for each slice of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
-    parser.add_argument('--dslice', type = int, default = 500, help = 'Default - 500; Thickness of slab(s) in dataset, in units of um')
+    parser.add_argument('-A', type = str, help = 'Initial guess - [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
+    parser.add_argument('-AJ', type = str, nargs = '*', help = 'A list of initial shifts for each slice of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
+    parser.add_argument('-dslice', type = int, default = 500, help = 'Default - 500; Thickness of slab(s) in dataset, in units of um')
     parser.add_argument('-e_path', type = str, required = True, help = 'The directory containing the emlddmm library from Github')
     parser.add_argument('-d_path', type = str, required = True, help = 'The directory containing the donglab_workflows library from Github')
-    parser.add_argument('-save_fig0', type=bool, default = False, help = 'Default - False; If True, save histogram of voxel values in outdir')
-    parser.add_argument('-save_fig1', type=bool, default = False, help = 'Default - False; If True, save figure showing MIP of every slice in outdir')
-    parser.add_argument('-save_fig2', type=bool, default = False, help = 'Default - False; If True, save figure showing where data is missing from low-res images in outdir')
-    parser.add_argument('-save_fig3', type=bool, default = False, help = 'Default - False; If True, save figure displaying the trapezoid function in outdir')
-    parser.add_argument('-save_fig4', type=bool, default = False, help = 'Default - False; If True, save figure displaying a map of the edges of the atlas in outdir')
-    parser.add_argument('-save_fig5', type=bool, default = False, help = 'Default - False; If True, save figure displaying the inner product which allows us to perform gradient descent in outdir')
-    parser.add_argument('-save_fig6', type=bool, default = False, help = 'Default - False; If True, save figure displaying the 12x12 matrices gid and gJid in outdir')
-    parser.add_argument('--normalizeData', type=str, default = 'True', choices = ['True', 'False'], help = 'Default - True; If True, normalize input data to [0,1]')
-    parser.add_argument('--zeroMean', type=str, default = 'True', choices = ['True', 'False'], help = 'Default - True; If True, use the zero mean convention when loading input data')
-    parser.add_argument('--largerRGBfig', type = bool, default = False, help = 'Default - False; If True, Include 8 panels for each orientation in the figRGB outputs during regstration, otherwise include 5 panels')
+    
+    parser.add_argument('-save_fig0', action = 'store_true', help = 'Default - False; If present, save histogram of voxel values in outdir')
+    parser.add_argument('-save_fig1', action = 'store_true', help = 'Default - False; If present, save figure showing MIP of every slice in outdir')
+    parser.add_argument('-save_fig2', action = 'store_true', help = 'Default - False; If True, save figure showing where data is missing from low-res images in outdir')
+    parser.add_argument('-save_fig3', action = 'store_true', help = 'Default - False; If present, save figure displaying the trapezoid function in outdir')
+    parser.add_argument('-save_fig4', action = 'store_true', help = 'Default - False; If present, save figure displaying a map of the edges of the atlas in outdir')
+    parser.add_argument('-save_fig5', action = 'store_true', help = 'Default - False; If present, save figure displaying the inner product which allows us to perform gradient descent in outdir')
+    parser.add_argument('-save_fig6', action = 'store_true', help = 'Default - False; If present, save figure displaying the 12x12 matrices gid and gJid in outdir')
+    
+    parser.add_argument('-norm','--normalizeData', action = 'store_false', help = 'Default - True; If True, normalize input data to [0,1]')
+    parser.add_argument('-zm','--zeroMean', action = 'store_false', help = 'Default - True; If True, use the zero mean convention when loading input data')
+    parser.add_argument('--largerRGBfig', action = 'store_true', help = 'Default - False; If True, Include 8 panels for each orientation in the figRGB outputs during regstration, otherwise include 5 panels')
     
     args = parser.parse_args()
 
     brain = args.dataset
     orientation = args.orientation
-    target_files = args.low
+    target_files = args.low_paths
     outdir = args.outdir
     atlas_names = args.atlas_paths
     dslice = args.dslice
+    device = args.device
 
     # If no input is provided, then define to_flip as an empty list. Otherwise, use the input
     if args.to_flip == -1:
@@ -120,7 +125,6 @@ def main():
     else:
         to_flip = args.to_flip
 
-    device = args.device
 
     if args.A != None:
         A = args.A
@@ -156,16 +160,9 @@ def main():
     saveFig4 = args.save_fig4
     saveFig5 = args.save_fig5
     saveFig6 = args.save_fig6
-
-    if args.normalizeData == 'True':
-        normalizeData = True
-    else:
-        normalizeData = False
-
-    if args.zeroMean == 'True':
-        zeroMean = True
-    else:
-        zeroMean = False
+    normalizeData = args.normalizeData
+    zeroMean = args.zeroMean
+    largerRGBfig = args.largerRGBfig
 
 
     # Import custom libraries from local device (Repo should have already been cloned from Github)
@@ -174,13 +171,13 @@ def main():
     sys.path.append(args.e_path)
     import emlddmm
     
-    
     seg_name = atlas_names[2]
     atlas_names = atlas_names[:2]
 
     # Perform checks on input data
     if not os.path.exists(outdir):
         os.makedirs(outdir)
+
     
     # =================================================================
     # ===== (1) Load the atlas + truncate hemisphere if necessary =====
@@ -193,9 +190,9 @@ def main():
     
         # Will zero-out atlas image for the hemisphere we are NOT aligning
         if orientation == 'R': # For images only containing a RIGHT  hemisphere
-            I_[:,:,:int(np.shape(I_)[2]/2),:] = 0
+            I_[:,:,:int(np.shape(I_)[2]/2),:] = 0.0
         elif orientation == 'L': # For images only containing a LEFT hemisphere (+1 brings back fig[1,2])
-            I_[:,:,int(np.shape(I_)[2]/2 + 1):,:] = 0
+            I_[:,:,int(np.shape(I_)[2]/2 + 1):,:] = 0.0
         else:
             I_ = I_
             
@@ -290,10 +287,7 @@ def main():
         
         # find the 10% quantile
         if normalizeData:
-            if brain == 'hTME19-2':
-                val = np.quantile(Ji[Wi[None]>=0.99],0.25)
-            else:
-                val = np.quantile(Ji[Wi[None]>=0.99],0.1)
+            val = np.quantile(Ji[Wi[None]>=0.99],0.1)
         else:
             val = np.quantile(Ji[Wi[None]>=0.99],0.05)
             
@@ -572,8 +566,6 @@ def main():
     v = torch.zeros((nt,XV.shape[0],XV.shape[1],XV.shape[2],XV.shape[3]),device=device,dtype=dtype,requires_grad=True)
     vJ = [torch.zeros((ntJ,KJ[i].shape[0],KJ[i].shape[1],KJ[i].shape[2],3),device=device,dtype=dtype,requires_grad=True) for i in range(len(J))]
 
-    # print(AJ)
-    
     
     # =================================================
     # ===== (6) Starts the optimization procedure =====

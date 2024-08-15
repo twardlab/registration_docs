@@ -19,6 +19,8 @@ def str_to_2D_mat(mat):
     out_arr : torch.tensor
         A 4x4 matrix whose elements were extracted from 'mat'
     """
+    if ' ' in mat:
+        mat = mat.replace(' ','') # Spaces cause errors later on, so we should remove them just in case
     mat = mat.replace('[','')
     mat = mat.split(']')
     mat[1] = mat[1][1:]

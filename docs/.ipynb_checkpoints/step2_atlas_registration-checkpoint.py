@@ -28,18 +28,18 @@ def main():
         The path to the directory where all outputs will be stored
     -shifts : list of 3 integers
         Shifts in the Anterior/Posterior, Left/Right, and Dorsal/Ventral directions to be applied to the low resolution image
-    -gamma : bool
-        Default - False; If true, perform gamma correction on high res image.
     -e_path : str
         The location of the custom Python library 'emlddmm', which can be cloned from GitHub at https://github.com/twardlab/emlddmm
     -d_path : str
         The location of the custom Python library 'donglab_workflows', which be cloned from GitHub at https://github.com/twardlab/donglab_workflows
-    -checkInit : str
-        If "True", script will save initial guesses and terminate before registration begins
-    -zeroMean : str    
-        Default - 'True'; Choices - ['True','False']; If True, use the zero mean convention when loading input data
-    -useRigidTransform : str
-        Default - 'False'; Choices - ['True','False']; If True, use a rigid transform instead of an affine transform for registration
+    -gamma : bool
+        Default - False; If present, apply a gamma correction to the file located at high_path.
+    -checkInit : bool
+        Default - False; If present, script will save initial guesses and terminate before registration begins.
+    -zeroMean : bool    
+        Default - True; If present, use the zero mean convention when loading input data.
+    -useRigidTransform : bool
+        Default - False; If present, use a rigid transform instead of an affine transform for registration.
         
     Raises
     ------
@@ -58,12 +58,13 @@ def main():
     parser.add_argument('-high_num', type = str, required = True, help = 'The slice number of the high res image')
     parser.add_argument('-outdir', type = str, required = True, help = 'Directory for all output figures to be saved')
     parser.add_argument('-shifts', type = int, nargs = 3, required = True, help = 'Shifts in the Anterior/Posterior, Left/Right, and Dorsal/Ventral directions to be applied to the low res image')
-    parser.add_argument('-gamma', type = str, default = "False", choices = ["True","False"], help = 'If true, perform gamma correction on high res image.')
     parser.add_argument('-e_path', type = str, required = True, help = 'The directory containing the emlddmm library from Github')
     parser.add_argument('-d_path', type = str, required = True, help = 'The directory containing the donglab_workflows library from Github')
-    parser.add_argument('-checkInit', type = str, default = "False", choices = ["True", "False"], help = 'If "True", script will save initial guesses and terminate before registration begins')
-    parser.add_argument('-zeroMean', type=str, default = 'True', choices = ['True', 'False'], help = 'Default - True; If True, use the zero mean convention when loading input data')
-    parser.add_argument('-useRigidTransform', type=str, default = 'False', choices = ['True','False'], help = 'Default - False; If True, use a rigid transform instead of an affine transform for registration')
+    
+    parser.add_argument('-gamma', action = 'store_true', help = 'If present, apply a gamma correction to the file located at high_path')
+    parser.add_argument('-checkInit', action = 'store_true', help = 'If present, script will save initial guesses and terminate before registration begins')
+    parser.add_argument('-zeroMean', action = 'store_false', help = 'If present, use the zero mean convention when loading input data')
+    parser.add_argument('-useRigidTransform', action = 'store_true', help = 'If present, use a rigid transform instead of an affine transform for registration')
     
     args = parser.parse_args()
     
@@ -73,26 +74,10 @@ def main():
     target_key = args.high_num
     outdir = args.outdir
     shifts = args.shifts
-
-    if args.gamma == "True":
-        performGamma = True
-    else:
-        performGamma = False    
-
-    if args.checkInit == "True":
-        checkInit = True
-    else:
-        checkInit = False    
-
-    if args.zeroMean == 'True':
-        zeroMean = True
-    else:
-        zeroMean = False
-
-    if args.useRigidTransform == 'True':
-        useRigidTransform = True
-    else:
-        useRigidTransform = False
+    performGamma = args.gamma
+    checkInit = args.checkInit
+    zeroMean = args.zeroMean
+    useRigidTransform = args.useRigidTransform
     
     # Import custom libraries from local device (Repo should have already been cloned from Github)
     sys.path.append(args.d_path)
@@ -103,7 +88,7 @@ def main():
     # (0) Perform checks on accepted arguments
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    
+
     # =============================================
     # ===== (1) Load the high resolution data =====
     # =============================================
@@ -297,7 +282,7 @@ def main():
     
     I_ = np.concatenate((I,I**2))
     if useRigidTransform:
-        out = emlddmm.emlddmm(xI=xI,I=I_,xJ=xJ,J=J, W0=W, Amode=1, **config0)
+        out = emlddmm.emlddmm(xI=xI,I=I_,xJ=xJ,J=J, W0=W, Amode=3, **config0)
     else:
         out = emlddmm.emlddmm(xI=xI,I=I_,xJ=xJ,J=J, W0=W, **config0)
         

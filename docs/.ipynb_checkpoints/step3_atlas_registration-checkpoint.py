@@ -17,7 +17,6 @@ import nibabel as nib
 from scipy.interpolate import interpn
 from scipy.stats import mode
 
-
 from step3_help import load_swc, backup_unpickle, Unpickler, ClassHack, str_to_list, get_xyzoff
     
 def main():
@@ -46,18 +45,18 @@ def main():
         The path to the directory where all outputs will be stored
     -atlas_paths : list of 4 str
         List of 3 allen atlas .vtk files, and 1 Yongsoo atlas .csv file. In order, these files are named (1) ara_nissl_50.vtk, (2) average_template_50.vtk, (3) UPenn_labels_reoriented_origin.vtk, and (4) atlas_info_KimRef_FPbasedLabel_v2.7.csv
-    -toggle_seg : str
-        Default - True; If True, atlas segmentations will be included in the QC output figures
-    -toggle_cp : str
-        Default - True; If True, atlas segmentation will highlight the subregions of the Caudoputamen
-    -toggle_low : str
-        Default - True; If True, QC output figures will include the low resolution image
-    -toggle_high : str
-        Default - True; If True, QC output figures will include the high resolution image
-    -toggle_neurons : str
-        Default - True; If True, QC output figures will include the registered neurons
-    --zeroMean : str    
-        Default - 'True'; Choices - ['True','False']; If True, use the zero mean convention when loading input data
+    -toggle_seg : bool
+        Default - True; If present, atlas segmentations will be included in the QC output figures
+    -toggle_cp : bool
+        Default - True; If present, atlas segmentation will highlight the subregions of the Caudoputamen
+    -toggle_low : bool
+        Default - True; If present, QC output figures will include the low resolution image
+    -toggle_high : bool
+        Default - True; If present, QC output figures will include the high resolution image
+    -toggle_neurons : bool
+        Default - True; If present, QC output figures will include the registered neurons
+    --zeroMean : bool    
+        Default - True; If present, use the zero mean convention when loading input data
 
     -e_path : str
         The location of the custom Python library 'emlddmm', which can be cloned from GitHub at https://github.com/twardlab/emlddmm
@@ -92,12 +91,12 @@ def main():
     parser.add_argument('-outdir', type = str, required = True, help = 'Output directory for all files generated from this script')
     parser.add_argument('-atlas_paths', type = str, nargs = 4, required = True, help = 'List of 3 allen atlas .vtk files, and 1 Yongsoo atlas .csv file')
     
-    parser.add_argument('-toggle_seg', type = str, default = "True", choices = ["True", "False"], help='Default - "True"; If True, atlas segmentations will be included in the QC output figures')
-    parser.add_argument('-toggle_cp', type = str, default = "True", choices = ["True", "False"], help='Default - "True"; If True, atlas segmentation will highlight the subregions of the Caudoputamen')
-    parser.add_argument('-toggle_low', type=str, default = "True", choices = ["True", "False"], help='Default - "True"; If True, QC output figures will include the low resolution image')
-    parser.add_argument('-toggle_high', type=str, default = "True", choices = ["True", "False"], help='Default - "True"; If True, QC output figures will include the high resolution image')
-    parser.add_argument('-toggle_neurons', type=str, default = "True", choices = ["True", "False"], help='Default - "True"; If True, QC output figures will include the registered neurons')
-    parser.add_argument('-zeroMean', type=str, default = 'True', choices = ['True', 'False'], help = 'Default - True; If True, use the zero mean convention when loading input data')
+    parser.add_argument('-toggle_seg', action = 'store_false', help='Default - "True"; If present, atlas segmentations will be included in the QC output figures')
+    parser.add_argument('-toggle_cp', action = 'store_false', help='Default - "True"; If present, atlas segmentation will highlight the subregions of the Caudoputamen')
+    parser.add_argument('-toggle_low', action = 'store_false', help='Default - "True"; If present, QC output figures will include the low resolution image')
+    parser.add_argument('-toggle_high', action = 'store_false', help='Default - "True"; If present, QC output figures will include the high resolution image')
+    parser.add_argument('-toggle_neurons', action = 'store_false', help='Default - "True"; If present, QC output figures will include the registered neurons')
+    parser.add_argument('-zeroMean', action = 'store_false', help = 'Default - True; If present, use the zero mean convention when loading input data')
     
     parser.add_argument('-e_path', type = str, required = True, help = 'The directory containing the emlddmm library from Github')
     parser.add_argument('-d_path', type = str, required = True, help = 'The directory containing the donglab_workflows library from Github')
@@ -125,35 +124,12 @@ def main():
     outdir = args.outdir
     atlas_paths = args.atlas_paths
 
-    if args.toggle_seg == "True":
-        includeSeg = True
-    else:
-        includeSeg = False
-
-    if args.toggle_cp == "True":
-        includeCP = True
-    else:
-        includeCP = False
-
-    if args.toggle_low == "True":
-        includeLow = True
-    else:
-        includeLow = False
-
-    if args.toggle_high == "True":
-        includeHigh = True
-    else:
-        includeHigh = False
-
-    if args.toggle_neurons == "True":
-        includeNeurons = True
-    else:
-        includeNeurons = False
-
-    if args.zeroMean == 'True':
-        zeroMean = True
-    else:
-        zeroMean = False
+    includeSeg = args.toggle_seg
+    includeCP = args.toggle_cp
+    includeLow = args.toggle_low
+    includeHigh = args.toggle_high
+    includeNeurons = args.toggle_neurons
+    zeroMean = args.zeroMean
 
     # ====================================================
     # ===== (0) Perform checks on input data formats =====
@@ -192,9 +168,6 @@ def main():
     
     if len(high_img_ids) != len(low_img_ids):
         raise Exception(f'Total number of 1-tuples and 2-tuples provided in \'high_img_ids\' ({len(high_img_ids)}) does not equal the number of low_img_ids ({len(low_img_ids)})')
-    
-    if includeCP:
-        includeSeg = True
     
     # If outdir does not exits, create it
     if not os.path.exists(outdir):

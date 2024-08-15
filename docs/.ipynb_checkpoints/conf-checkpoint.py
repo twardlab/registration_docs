@@ -31,7 +31,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 import os
 import sys
-# sys.path.append('/home/abenneck/Desktop/image_reg/dragonfly_registration_summer_2023/registration_scripts')
 sys.path.insert(0, os.path.abspath('.'))
 
 
