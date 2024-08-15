@@ -57,7 +57,7 @@
 </dd>
 <dt>orientation<span class="classifier">char</span></dt><dd><p>The portion of the brain captured by this dataset (W - whole, L - left hemisphere, R - right hemisphere)</p>
 </dd>
-<dt>-low<span class="classifier">str or list of str</span></dt><dd><p>1 or more file paths pointing to the location(s) of the low resolution mouse brain images (.npz) in Anterior to Posterior order</p>
+<dt>-low_paths<span class="classifier">str or list of str</span></dt><dd><p>1 or more file paths pointing to the location(s) of the low resolution mouse brain images (.npz) in Anterior to Posterior order</p>
 </dd>
 <dt>-outdir<span class="classifier">str</span></dt><dd><p>The path to the directory where all outputs will be stored</p>
 </dd>
@@ -67,33 +67,33 @@
 </dd>
 <dt>-device<span class="classifier">str</span></dt><dd><p>The device for torch computation (Options: ‘cpu’, ‘cuda:0’, ‘cuda:1’, ‘mps’)</p>
 </dd>
-<dt>–A<span class="classifier">str</span></dt><dd><p>The 4x4 affine matrix used to estimate an initial guess for the registration algorithm. Should be of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab’s MORF project</p>
+<dt>-A<span class="classifier">str</span></dt><dd><p>The 4x4 affine matrix used to estimate an initial guess for the registration algorithm. Should be of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab’s MORF project</p>
 </dd>
-<dt>–AJ<span class="classifier">list of str</span></dt><dd><p>A list of 4x4 affine matrices used to estimate an initial guess for each slice to be used in the registration algorithm. Should be a list of the same length as the number of slices and each element must be of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab’s MORF project</p>
+<dt>-AJ<span class="classifier">list of str</span></dt><dd><p>A list of 4x4 affine matrices used to estimate an initial guess for each slice to be used in the registration algorithm. Should be a list of the same length as the number of slices and each element must be of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab’s MORF project</p>
 </dd>
-<dt>–dslice<span class="classifier">int</span></dt><dd><p>Default - 500; The thickness of the slab(s) within the dataset, in units of um</p>
+<dt>-dslice<span class="classifier">int</span></dt><dd><p>Default - 500; The thickness of the slab(s) within the dataset, in units of um</p>
 </dd>
 <dt>-e_path<span class="classifier">str</span></dt><dd><p>The location of the custom Python library ‘emlddmm’, which can be cloned from GitHub at <a class="reference external" href="https://github.com/twardlab/emlddmm">https://github.com/twardlab/emlddmm</a></p>
 </dd>
 <dt>-d_path<span class="classifier">str</span></dt><dd><p>The location of the custom Python library ‘donglab_workflows’, which be cloned from GitHub at <a class="reference external" href="https://github.com/twardlab/donglab_workflows">https://github.com/twardlab/donglab_workflows</a></p>
 </dd>
-<dt>-save_fig0<span class="classifier">bool</span></dt><dd><p>Default - False; If True, save histogram of voxel values in outdir</p>
+<dt>-save_fig0<span class="classifier">bool</span></dt><dd><p>Default - False; If present, save histogram of voxel values in outdir</p>
 </dd>
-<dt>-save_fig1<span class="classifier">bool</span></dt><dd><p>Default - False; If True, save figure showing MIP of every slice in outdir</p>
+<dt>-save_fig1<span class="classifier">bool</span></dt><dd><p>Default - False; If present, save figure showing MIP of every slice in outdir</p>
 </dd>
-<dt>-save_fig2<span class="classifier">bool</span></dt><dd><p>Default - False; If True, save figure showing where data is missing from low-res images in outdir</p>
+<dt>-save_fig2<span class="classifier">bool</span></dt><dd><p>Default - False; If present, save figure showing where data is missing from low-res images in outdir</p>
 </dd>
-<dt>-save_fig3<span class="classifier">bool</span></dt><dd><p>Default - False; If True, save figure displaying the trapezoid function in outdir</p>
+<dt>-save_fig3<span class="classifier">bool</span></dt><dd><p>Default - False; If present, save figure displaying the trapezoid function in outdir</p>
 </dd>
-<dt>-save_fig4<span class="classifier">bool</span></dt><dd><p>Default - False; If True, save figure displaying a map of the edges of the atlas in outdir</p>
+<dt>-save_fig4<span class="classifier">bool</span></dt><dd><p>Default - False; If present, save figure displaying a map of the edges of the atlas in outdir</p>
 </dd>
-<dt>-save_fig5<span class="classifier">bool</span></dt><dd><p>Default - False; If True, save figure displaying the inner product which allows us to perform gradient descent in outdir</p>
+<dt>-save_fig5<span class="classifier">bool</span></dt><dd><p>Default - False; If present, save figure displaying the inner product which allows us to perform gradient descent in outdir</p>
 </dd>
-<dt>-save_fig6<span class="classifier">bool</span></dt><dd><p>Default - False; If True, save figure displaying the 12x12 matrices gid and gJid in outdir</p>
+<dt>-save_fig6<span class="classifier">bool</span></dt><dd><p>Default - False; If present, save figure displaying the 12x12 matrices gid and gJid in outdir</p>
 </dd>
-<dt>–normalizeData<span class="classifier">str</span></dt><dd><p>Default - ‘True’; Choices - [‘True’,’False’]; If True, normalize input data to [0,1]</p>
+<dt>–normalizeData<span class="classifier">bool</span></dt><dd><p>Default - True; If True, normalize input data to [0,1]</p>
 </dd>
-<dt>–zeroMean<span class="classifier">str</span></dt><dd><p>Default - ‘True’; Choices - [‘True’,’False’]; If True, use the zero mean convention when loading input data</p>
+<dt>–zeroMean<span class="classifier">bool</span></dt><dd><p>Default - True; If True, use the zero mean convention when loading all input data</p>
 </dd>
 <dt>–largerRGBfig<span class="classifier">bool</span></dt><dd><p>Default - False; If True, Include 8 panels for each orientation in the figRGB outputs during regstration, otherwise include 5 panels</p>
 </dd>

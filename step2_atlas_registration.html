@@ -65,17 +65,17 @@
 </dd>
 <dt>-shifts<span class="classifier">list of 3 integers</span></dt><dd><p>Shifts in the Anterior/Posterior, Left/Right, and Dorsal/Ventral directions to be applied to the low resolution image</p>
 </dd>
-<dt>-gamma<span class="classifier">bool</span></dt><dd><p>Default - False; If true, perform gamma correction on high res image.</p>
-</dd>
 <dt>-e_path<span class="classifier">str</span></dt><dd><p>The location of the custom Python library ‘emlddmm’, which can be cloned from GitHub at <a class="reference external" href="https://github.com/twardlab/emlddmm">https://github.com/twardlab/emlddmm</a></p>
 </dd>
 <dt>-d_path<span class="classifier">str</span></dt><dd><p>The location of the custom Python library ‘donglab_workflows’, which be cloned from GitHub at <a class="reference external" href="https://github.com/twardlab/donglab_workflows">https://github.com/twardlab/donglab_workflows</a></p>
 </dd>
-<dt>-checkInit<span class="classifier">str</span></dt><dd><p>If “True”, script will save initial guesses and terminate before registration begins</p>
+<dt>-gamma<span class="classifier">bool</span></dt><dd><p>Default - False; If present, apply a gamma correction to the file located at high_path.</p>
 </dd>
-<dt>-zeroMean<span class="classifier">str</span></dt><dd><p>Default - ‘True’; Choices - [‘True’,’False’]; If True, use the zero mean convention when loading input data</p>
+<dt>-checkInit<span class="classifier">bool</span></dt><dd><p>Default - False; If present, script will save initial guesses and terminate before registration begins.</p>
 </dd>
-<dt>-useRigidTransform<span class="classifier">str</span></dt><dd><p>Default - ‘False’; Choices - [‘True’,’False’]; If True, use a rigid transform instead of an affine transform for registration</p>
+<dt>-zeroMean<span class="classifier">bool</span></dt><dd><p>Default - True; If present, use the zero mean convention when loading input data.</p>
+</dd>
+<dt>-useRigidTransform<span class="classifier">bool</span></dt><dd><p>Default - False; If present, use a rigid transform instead of an affine transform for registration.</p>
 </dd>
 </dl>
 <dl class="field-list simple">
