@@ -1,8 +1,0 @@
-argparse
-matplotlib
-nbsphinx
-nibabel
-numpy
-scipy
-scikit-image
-torch
