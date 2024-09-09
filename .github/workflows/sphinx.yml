@@ -10,7 +10,6 @@ jobs:
 
     # List out all of the actions to be taken
     steps:
-    # TODO: What does this do?
     - name: Checkout code
       uses: actions/checkout@v3
 
