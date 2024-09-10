@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-WELCOME to the mouse brain registration documentation!
+Welcome to the mouse brain registration documentation!
 ======================================================
 
 .. toctree::
