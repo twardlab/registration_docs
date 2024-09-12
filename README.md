@@ -62,7 +62,7 @@ if largerRGBfig:
 os.system(cmd_str)
 ~~~
 
-### Step 1 Example Outputs
+### Step 1 Example Outputs from running the above cell
 | Before Registration | After Registration |
 | ------------------- | ------------------ |
 | ![image](/images/hTME15-1_rgb_it_00000.jpg) |![image](/images/hTME15-1_rgb_it_39761.jpg)|
@@ -107,6 +107,11 @@ if useRigidTransform:
 
 os.system(cmd_str)
 ~~~
+
+### Step 2 Example Outputs from running the above cell
+| Before Registration | After Registration |
+| ------------------- | ------------------ |
+| ![image](/images/TME08-1_04A_err3_before.jpg) |![image](/images/TME08-1_04A_err3_before.jpg)|
 
 ## Step 3 (Neuron Reconstruction Registration)
 Using the `argparse` library, we created a command-line interface in order to register our dataset of neuron reconstructions (defined as a set of .swc files) to our dataset of 10x mouse brain images. This program can be used by running:
@@ -180,8 +185,13 @@ if not toggle_low:
     cmd_str += ' -toggle_low'
 if not toggle_high:
     cmd_str += ' -toggle_high'
+
 if not toggle_neurons:
     cmd_str += ' -toggle_neurons'
 
 os.system(cmd_str)
 ~~~
+
+### Step 3 Example Output from running the above cell
+This output includes the registered 10x image, the 2 corresponding 30x images, and all of the registered neuronal reconstructions for this slab.
+![image](/images/TME08-1_04_seg.spg)
