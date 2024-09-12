@@ -196,4 +196,4 @@ os.system(cmd_str)
 This output includes the registered 10x image, the 2 corresponding 30x images, all of the registered neuronal reconstructions for this slab, regional segmentations, and a highlighted segmentation surrounding the Caudateputamen (CP). The CP was the primary region of interest for the flagship paper where these scripts were used to register 12 mouse brains to the Allen Mouse Brain Atlas. (TODO: Add link once one is available)
 ![image](/images/TME08-1_04_seg.jpg)
 
-Note that all other Python modules within this repository do not have command-line interfaces and are instead used to define functions which are called in the 3 primary registration scripts or for generating the documentation found on this repository's (GitHub Pages)[https://twardlab.github.io/registration_docs/] site
+Note that all other Python modules within this repository do not have command-line interfaces and are instead used to define functions which are called in the 3 primary registration scripts or for generating the documentation found on this repository's [GitHub Pages](https://twardlab.github.io/registration_docs/) site
