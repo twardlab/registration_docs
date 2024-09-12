@@ -62,6 +62,9 @@ if largerRGBfig:
 os.system(cmd_str)
 ~~~
 
+### Step 1 Example Outputs
+![image](/images/TME08-1_recon_it_00000.jpg)
+
 ## Step 2 (30x to 10x Registration)
 Using the `argparse` library, we created another command-line interface in order to register our dataset of 30x mouse brain images to our dataset of 10x mouse brain images. This program can be used by running:
 
