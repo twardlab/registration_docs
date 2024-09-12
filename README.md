@@ -1,6 +1,6 @@
 # Dragonfly MORF Mouse Brain Registration
 
-This repository contains the scripts and documentation for the pipeline used to register the 10x images, 30x images, and neuronal reconstructions for over 12 mouse brains to the Allen Common Coordinate Frameowrk (CCF).
+This repository contains the scripts and documentation for the pipeline used to register the 10x images, 30x images, and neuronal reconstructions for over 12 mouse brains to the Allen Common Coordinate Frameowrk (CCF). Please go to our [GitHub Pages](https://twardlab.github.io/registration_docs/) site associated with this repository to see the detailed documentation for all of the custom functions and arguments used within each package.
 
 ## Step 1 (Atlas to 10x Registration)
 Using the `argparse` library, we created a command-line interface in order to register the Allen Mouse Brain Atlas to our dataset of 10x mouse brain images. This program can be used by running:
