@@ -31,9 +31,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.append('/source')
-
+# sys.path.insert(0, os.path.abspath('.'))
+sys.path.append('/home/abenneck/Desktop/registration_docs/source')
+sys.path.append('/home/runner/work/registration_docs/registration_docs/source')
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
