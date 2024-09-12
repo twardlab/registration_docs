@@ -2,7 +2,7 @@
 
 This repository contains the scripts and documentation for the pipeline used to register the 10x images, 30x images, and neuronal reconstructions for over 12 mouse brains to the Allen Common Coordinate Framework (CCF). Please go to our [GitHub Pages](https://twardlab.github.io/registration_docs/) site associated with this repository to see the detailed documentation for all of the custom functions and arguments used within each package.
 
-Below is an overview of the 3 primary components of our registration pipeline, along with examples of how to use the command-line interface associated with each script.
+Below is an overview of the 3 primary steps in our registration pipeline, along with examples of how to use the command-line interface associated with each script.
 
 ## Step 1 (Atlas to 10x Registration)
 Using the `argparse` library, we created a command-line interface in order to register the Allen Mouse Brain Atlas to our dataset of 10x mouse brain images. This program can be used by running:
