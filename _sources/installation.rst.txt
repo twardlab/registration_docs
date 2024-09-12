@@ -6,7 +6,6 @@ Installation Guide
 
 In order to use the 3 registration scripts in this directory, ensure that the following modules are installed:
     - matplotlib
-    - mpl_toolkits
     - nibabel
     - numpy
     - pickle
