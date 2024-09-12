@@ -192,6 +192,6 @@ if not toggle_neurons:
 os.system(cmd_str)
 ~~~
 
-### Step 3 Example Output from running the above cell
+### Step 3 Example Output from running the above cell (Note that similar images would also be generated for each of the 10x slabs)
 This output includes the registered 10x image, the 2 corresponding 30x images, and all of the registered neuronal reconstructions for this slab.
-![image](/images/TME08-1_04_seg.spg)
+![image](/images/TME08-1_04_seg.jpg)
