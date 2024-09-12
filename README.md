@@ -111,7 +111,7 @@ os.system(cmd_str)
 ### Step 2 Example Outputs from running the above cell
 | Before Registration | After Registration |
 | ------------------- | ------------------ |
-| ![image](/images/TME08-1_04A_err3_before.jpg) |![image](/images/TME08-1_04A_err3_before.jpg)|
+| ![image](/images/TME08-1_04A_err3_before.jpg) |![image](/images/TME08-1_04A_err3_after.jpg)|
 
 ## Step 3 (Neuron Reconstruction Registration)
 Using the `argparse` library, we created a command-line interface in order to register our dataset of neuron reconstructions (defined as a set of .swc files) to our dataset of 10x mouse brain images. This program can be used by running:
