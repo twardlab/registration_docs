@@ -5,10 +5,10 @@ Installation Guide
    :maxdepth: 3
 
 In order to use the 3 registration scripts in this directory, ensure that the following modules are installed:
+    - argparse
     - matplotlib
     - nibabel
     - numpy
-    - pickle
     - scipy
     - skimage
     - torch
