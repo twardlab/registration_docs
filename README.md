@@ -116,7 +116,7 @@ os.system(cmd_str)
 | ![image](/images/TME08-1_04A_err3_before.jpg) |![image](/images/TME08-1_04A_err3_after.jpg)|
 
 ## Step 3 (Neuron Reconstruction Registration)
-Using the `argparse` library, we created a command-line interface in order to register our dataset of neuron reconstructions (defined as a set of .swc files) to our dataset of 10x mouse brain images. This program can be used by running:
+Using the `argparse` library, we created a command-line interface in order to register our dataset of neuron reconstructions (defined as a set of .swc files) to our dataset of 30x mouse brain images. This program can be used by running:
 
 `python3 step3_atlas_registration.py`, followed by all the relevant positional and optional arguments from any command-line interface.
 
