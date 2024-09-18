@@ -38,6 +38,8 @@ def main():
         A list of 4x4 affine matrices used to estimate an initial guess for each slice to be used in the registration algorithm. Should be a list of the same length as the number of slices and each element must be of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project
     -dslice : int
         Default - 500; The thickness of the slab(s) within the dataset, in units of um
+    -n_iter : int
+        Default - 40000; The number of iterations to run the EMLDDMM optimization algorithm
     -e_path : str
         The location of the custom Python library 'emlddmm', which can be cloned from GitHub at https://github.com/twardlab/emlddmm
     -d_path : str
@@ -94,6 +96,7 @@ def main():
     parser.add_argument('-A', type = str, help = 'Initial guess - [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
     parser.add_argument('-AJ', type = str, nargs = '*', help = 'A list of initial shifts for each slice of the form [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
     parser.add_argument('-dslice', type = int, default = 500, help = 'Default - 500; Thickness of slab(s) in dataset, in units of um')
+    parser.add_argument('-n_iter', type = int, default = 40000, help = 'Default - 40000; The number of iterations to run the EMLDDMM optimization algorithm')
     parser.add_argument('-e_path', type = str, required = True, help = 'The directory containing the emlddmm library from Github')
     parser.add_argument('-d_path', type = str, required = True, help = 'The directory containing the donglab_workflows library from Github')
     
