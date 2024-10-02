@@ -121,6 +121,7 @@ def main():
     atlas_names = args.atlas_paths
     dslice = args.dslice
     device = args.device
+    n_iter = args.n_iter
 
     # If no input is provided, then define to_flip as an empty list. Otherwise, use the input
     if args.to_flip == -1:
@@ -578,7 +579,7 @@ def main():
     v.requires_grad = True
     for vJi in vJ: vJi.requires_grad = True
     
-    niter = 40000
+    niter = n_iter
     sigmaR = 1e6
     sigmaR = 1e4
     sigmaRJ = 1e3
