@@ -200,3 +200,9 @@ This output includes the registered 10x image, the 2 corresponding 30x images, a
 
 Note that all other Python modules within the `source` folder do not have command-line interfaces and are instead used to define functions which are called in the 3 primary registration scripts or for generating the documentation found on this repository's [GitHub Pages](https://twardlab.github.io/registration_docs/) site
 - This includes `step1_help.py` and `step3_help.py`
+
+# registration_script_example.ipynb
+This notebook is inteded to be used to show that the scripts within this repository function as intended.
+
+# compute_neuron_probabilities.ipynb
+This notebook was used to assign conditional regional probabilities to all of the registered neurons in the Dendritome MORF project.
