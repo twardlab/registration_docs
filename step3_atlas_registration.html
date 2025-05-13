@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Neuron registration &#8212; Mouse Brain Atlas Registration 0.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/documentation_options.js?v=2709fde1"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -74,6 +74,10 @@
 <dt>-outdir<span class="classifier">str</span></dt><dd><p>The path to the directory where all outputs will be stored</p>
 </dd>
 <dt>-atlas_paths<span class="classifier">list of 4 str</span></dt><dd><p>List of 3 allen atlas .vtk files, and 1 Yongsoo atlas .csv file. In order, these files are named (1) ara_nissl_50.vtk, (2) average_template_50.vtk, (3) UPenn_labels_reoriented_origin.vtk, and (4) atlas_info_KimRef_FPbasedLabel_v2.7.csv</p>
+</dd>
+<dt>-mask_paths<span class="classifier">list of str</span></dt><dd><p>The file paths to any manual segmentations to be used for registration performance quantification</p>
+</dd>
+<dt>-mask_inds<span class="classifier">list of int</span></dt><dd><p>The index of low_img_paths which corresponds to the respective mask_paths</p>
 </dd>
 <dt>-toggle_seg<span class="classifier">bool</span></dt><dd><p>Default - True; If present, atlas segmentations will be included in the QC output figures</p>
 </dd>

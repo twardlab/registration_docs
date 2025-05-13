@@ -11,6 +11,7 @@ In order to use the 3 registration scripts in this directory, ensure that the fo
     - numpy
     - scipy
     - skimage
+    - tifffile
     - torch
 
 Additionally, the following custom Python modules must be cloned from GitHub. The locations of these repositories on your local device will be used as input arguments for all 3 scripts

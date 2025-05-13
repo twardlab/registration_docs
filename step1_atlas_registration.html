@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Atlas to low resolution image registration &#8212; Mouse Brain Atlas Registration 0.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/documentation_options.js?v=2709fde1"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -107,11 +107,14 @@
 <dt class="field-even">raises Exception<span class="colon">:</span></dt>
 <dd class="field-even"><p>if the number of arguments passed to ‘AJ’ does not equal the number of arguments passed to ‘low’</p>
 </dd>
-<dt class="field-odd">raises ValueError<span class="colon">:</span></dt>
-<dd class="field-odd"><p>if the argument ‘A’ is not of the correct form</p>
+<dt class="field-odd">raises Exception<span class="colon">:</span></dt>
+<dd class="field-odd"><p>if the provided atlases don’t have a .vtk, .nii, or .tif file extension</p>
 </dd>
 <dt class="field-even">raises ValueError<span class="colon">:</span></dt>
-<dd class="field-even"><p>if any elements from the list argument ‘AJ’ are not of the correct form</p>
+<dd class="field-even"><p>if the argument ‘A’ is not of the correct form</p>
+</dd>
+<dt class="field-odd">raises ValueError<span class="colon">:</span></dt>
+<dd class="field-odd"><p>if any elements from the list argument ‘AJ’ are not of the correct form</p>
 </dd>
 </dl>
 </section>

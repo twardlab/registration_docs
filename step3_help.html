@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>Step 3 helper functions &#8212; Mouse Brain Atlas Registration 0.1 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=a746c00c" />
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8f2a1f02" />
     <link rel="stylesheet" type="text/css" href="_static/nature.css?v=279e0f84" />
     <script src="_static/documentation_options.js?v=2709fde1"></script>
     <script src="_static/doctools.js?v=9bcbadda"></script>
@@ -78,6 +78,28 @@ needed.  Both arguments passed are str objects.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="step3_help.atlas_to_cp_mask">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">atlas_to_cp_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atlas_vis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">region_ids</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.atlas_to_cp_mask" title="Link to this definition">¶</a></dt>
+<dd><p>Convert an integer-valued segmentation of the mouse brain into a ternary mask (0:background, 1:brain (-CP), 2: CP)</p>
+<section id="parameters">
+<h2>Parameters:<a class="headerlink" href="#parameters" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>atlas_vis<span class="classifier">array of ints</span></dt><dd><p>An array of size [X,Y,Z] where each element contains the subregion ID of the corresponding voxel in the mouse brain</p>
+</dd>
+<dt>region_ids<span class="classifier">array of ints</span></dt><dd><p>An array containing all of the region IDs corresponding to the CP</p>
+</dd>
+</dl>
+</section>
+<section id="returns">
+<h2>Returns:<a class="headerlink" href="#returns" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>all_non_cp<span class="classifier">array of ints</span></dt><dd><p>An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="step3_help.backup_unpickle">
 <span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">backup_unpickle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">reg_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.backup_unpickle" title="Link to this definition">¶</a></dt>
 <dd><p>A function used to load the low-to-high registration transform file</p>
@@ -90,6 +112,84 @@ needed.  Both arguments passed are str objects.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.compute_all_dice_scores">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">compute_all_dice_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atlas_vis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual_vis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.compute_all_dice_scores" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the Dice score between the registered atlas segmentation and a manual anatomical segmentation for the CP and for the whole brain</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atlas_vis</strong> (<em>array</em><em> of </em><em>ints</em>) – An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain; Registered atlas segmentation</p></li>
+<li><p><strong>manual_vis</strong> (<em>array</em><em> of </em><em>ints</em>) – An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain; Manual anatomical segmentation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>dice_cp</strong> (<em>float</em>) – The dice score when comparing the registered atlas segmentation and a manual anatomical segmentation for the CP</p></li>
+<li><p><strong>dice_wb</strong> (<em>float</em>) – The dice score when comparing the registered atlas segmentation and a manual anatomical segmentation for the whole brain</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.compute_all_hausdorff_scores">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">compute_all_hausdorff_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atlas_bound_coords</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual_bound_coords</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.compute_all_hausdorff_scores" title="Link to this definition">¶</a></dt>
+<dd><p>Generate a NxM matrix of Euclidean distances corresponding to the Euclidean distances between a set of N points and another set of M points, extract the N+M Hausdorff distances, and return several performance metrics corresponding to the similarity of the N points from atlas_bound_coords and manual_bound_coords.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atlas_bound_coords</strong> (<em>array</em><em> of </em><em>float</em>) – A 3xN array containing the x,y,z coordinates for all of the points defining a regional boundary in the registered mouse brain atlas</p></li>
+<li><p><strong>manual_bound_coords</strong> (<em>array</em><em> of </em><em>float</em>) – A 3xM array containing the x,y,z coordinates for all of the points defining a regional boundary in the manual anatomical segmentation</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>h_dist</strong> (<em>float</em>) – The Hausdorff Score; i.e. the maximum of all the Hausdorff distances</p></li>
+<li><p><strong>h_dist_50</strong> (<em>float</em>) – The 50th percentile from all of the Hausdorff distances</p></li>
+<li><p><strong>h_dist_95</strong> (<em>float</em>) – The 95th percentile from all of the Hausdorff distances</p></li>
+<li><p><strong>all_min_dist</strong> (<em>array of float</em>) – A [N+M] array of all the Hausdorff distances</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.compute_dice_score">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">compute_dice_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atlas_vis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual_vis</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.compute_dice_score" title="Link to this definition">¶</a></dt>
+<dd><p>Compute the Dice score between the registered atlas segmentation and a manual anatomical segmentation for the CP and for the whole brain</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atlas_vis</strong> (<em>array</em><em> of </em><em>ints</em>) – An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in a binarized mouse brain; Registered atlas segmentation</p></li>
+<li><p><strong>manual_vis</strong> (<em>array</em><em> of </em><em>ints</em>) – An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in a binarized mouse brain; Manual anatomical segmentation</p></li>
+<li><p><strong>Returns</strong></p></li>
+<li><p><strong>========</strong></p></li>
+<li><p><strong>out</strong> (<em>float</em>) – The dice score computed between atlas_vis and manual_vis</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.get_target_ids">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">get_target_ids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atlas_labels_path</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.get_target_ids" title="Link to this definition">¶</a></dt>
+<dd><p>Return a list of the region IDs from Yongsoo Kim’s atlas corresponding to all of the subregions within the CP</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>atlas_labels_path</strong> (<em>str</em>) – The file path pointing to the location of a csv file containing all of the region IDs for Yongsoo Kim’s mouse brain atlas</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>region_ids</strong> – A list of integers corresponding to the regions within the CP region of the mouse brain</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list of int</p>
 </dd>
 </dl>
 </dd></dl>
@@ -139,6 +239,40 @@ needed.  Both arguments passed are str objects.</p>
 </dd></dl>
 
 <dl class="py function">
+<dt class="sig sig-object py" id="step3_help.npz_to_Nifti1">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">npz_to_Nifti1</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">npzPath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outPath</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">affine</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saveImage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.npz_to_Nifti1" title="Link to this definition">¶</a></dt>
+<dd><p>Convert an (.npz) file into a Nifti1 (.nii.gz) file using the provided affine matrix</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>npzPath</strong> (<em>str</em>) – A file path pointing to an npz file containing image data</p></li>
+<li><p><strong>outPath</strong> (<em>str</em>) – A file path pointing to the desired output location for the converted Nifti1 file</p></li>
+<li><p><strong>affine</strong> (<em>List</em><em> of </em><em>float</em>) – A 4x4 affine matrix used to initialzie the Nifti1 Image</p></li>
+<li><p><strong>key</strong> (<em>str</em>) – Default - None; The key corresponding to the image data stored at ‘npzPath’. If None, use the first key.</p></li>
+<li><p><strong>saveImage</strong> (<em>bool</em>) – Default - False; If True, save the Nifti1 file at outPath</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.plot_all_slices">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">plot_all_slices</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">atlas_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">curr_mask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_img_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outdir_fname</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.plot_all_slices" title="Link to this definition">¶</a></dt>
+<dd><p>Plot the integer-valued masks from the registered mouse brain atlas and the manual anatomical segmentation over the corresponding microscopy image.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>atlas_mask</strong> (<em>array</em><em> of </em><em>int</em>) – An array of size [X,Y,Z] defining an integer-valued image of the registered mouse brain atlas</p></li>
+<li><p><strong>curr_mask</strong> (<em>array</em><em> of </em><em>int</em>) – An array of size [X,Y,Z] defining an integer-valued image of manual anatomical segmentation</p></li>
+<li><p><strong>low_img_path</strong> (<em>str</em>) – A file path pointing to the location of the corresponding low resolution image used to generate both masks</p></li>
+<li><p><strong>outdir</strong> (<em>str</em>) – A file path poining to the directory where the plot should be saved</p></li>
+<li><p><strong>outdir_fname</strong> (<em>str</em>)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
 <dt class="sig sig-object py" id="step3_help.str_to_list">
 <span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">str_to_list</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.str_to_list" title="Link to this definition">¶</a></dt>
 <dd><p>A function which takes a list formatted as a string and converts it to a list of the correct shape</p>
@@ -151,6 +285,24 @@ needed.  Both arguments passed are str objects.</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="step3_help.ternary_to_boundary">
+<span class="sig-prename descclassname"><span class="pre">step3_help.</span></span><span class="sig-name descname"><span class="pre">ternary_to_boundary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ternary_mask</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#step3_help.ternary_to_boundary" title="Link to this definition">¶</a></dt>
+<dd><p>Convert a 3D ternarized image into the boundaries between regions 0,1+2 and 0+1,2.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>ternary_mask</strong> (<em>array</em><em> of </em><em>int</em>) – An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>cp_3d_bound</strong> (<em>array of int</em>) – An array of size [X,Y,Z] where each element is either 1 if it is along the boundary of the CP and 0 otherwise</p></li>
+<li><p><strong>wb_3d_bound</strong> (<em>array of int</em>) – An array of size [X,Y,Z] where each element is either 1 if it is along the outer boundary of the cortex and 0 otherwise</p></li>
+</ul>
+</p>
 </dd>
 </dl>
 </dd></dl>
@@ -177,10 +329,18 @@ needed.  Both arguments passed are str objects.</p>
 <li><a class="reference internal" href="#step3_help.Unpickler.find_class"><code class="docutils literal notranslate"><span class="pre">Unpickler.find_class()</span></code></a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#step3_help.atlas_to_cp_mask"><code class="docutils literal notranslate"><span class="pre">atlas_to_cp_mask()</span></code></a></li>
 <li><a class="reference internal" href="#step3_help.backup_unpickle"><code class="docutils literal notranslate"><span class="pre">backup_unpickle()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.compute_all_dice_scores"><code class="docutils literal notranslate"><span class="pre">compute_all_dice_scores()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.compute_all_hausdorff_scores"><code class="docutils literal notranslate"><span class="pre">compute_all_hausdorff_scores()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.compute_dice_score"><code class="docutils literal notranslate"><span class="pre">compute_dice_score()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.get_target_ids"><code class="docutils literal notranslate"><span class="pre">get_target_ids()</span></code></a></li>
 <li><a class="reference internal" href="#step3_help.get_xyzoff"><code class="docutils literal notranslate"><span class="pre">get_xyzoff()</span></code></a></li>
 <li><a class="reference internal" href="#step3_help.load_swc"><code class="docutils literal notranslate"><span class="pre">load_swc()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.npz_to_Nifti1"><code class="docutils literal notranslate"><span class="pre">npz_to_Nifti1()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.plot_all_slices"><code class="docutils literal notranslate"><span class="pre">plot_all_slices()</span></code></a></li>
 <li><a class="reference internal" href="#step3_help.str_to_list"><code class="docutils literal notranslate"><span class="pre">str_to_list()</span></code></a></li>
+<li><a class="reference internal" href="#step3_help.ternary_to_boundary"><code class="docutils literal notranslate"><span class="pre">ternary_to_boundary()</span></code></a></li>
 </ul>
 </li>
 </ul>
