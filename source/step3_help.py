@@ -3,6 +3,14 @@ Contains a set of functions used to assist with the preprocessing and computatio
 """
 
 import numpy as np
+import nibabel as nib
+import os
+import csv
+import matplotlib.pyplot as plt
+from scipy.ndimage import binary_erosion
+from math import dist
+import torch
+# from scipy.spatial.distance import directed_hausdorff
 
 # here we have a backup unpickler that ignores figures in case there are version issues
 import pickle
@@ -69,6 +77,7 @@ def backup_unpickle(reg_file):
         _check_version(version)
         dtype = _read_array_header(f, version)[2]    
         out = Unpickler(f).load().item()
+    
     return out
 
 def load_swc(fname,skip=0):
@@ -233,3 +242,338 @@ def get_xyzoff(fname, brain, neuron_dir, skip=0):
         return np.array([fx-x, fy-y, fz-z])
     else:
         return np.array([0.0, 0.0, 0.0])
+
+# Get ontology from Yongsoo Kim's mouse brain segmented atlas
+def get_target_ids(atlas_labels_path):
+    """Return a list of the region IDs from Yongsoo Kim's atlas corresponding to all of the subregions within the CP
+
+    Parameters
+    ==========
+    atlas_labels_path : str
+        The file path pointing to the location of a csv file containing all of the region IDs for Yongsoo Kim's mouse brain atlas
+
+    Returns
+    =======
+    region_ids : list of int
+        A list of integers corresponding to the regions within the CP region of the mouse brain
+    
+    """
+    ontology = {}
+    with open(atlas_labels_path) as f:
+        reader = csv.reader(f)    
+        for count,row in enumerate(reader):
+            if count == 0:
+                headers = row
+                id_ind = 0
+                name_ind = headers.index('name')
+                acronym_ind = headers.index('acronym')
+                parent_ind = headers.index('parent_id')
+                continue
+            id_ = row[id_ind]
+            id_ = int(id_)
+            name = row[name_ind]
+            acronym = row[acronym_ind]
+            
+            parent = row[parent_ind]
+            if parent:
+                parent = int(parent)
+            else:
+                parent = None
+            ontology[id_] = dict(id=id_,name=name,acronym=acronym,parent=parent)
+            
+    # find all labels corresponding to CP + ACB
+    region_ids = []
+    for id_ in ontology:    
+        if 'caudoputamen' in ontology[id_]['name'].lower():
+            region_ids.append(id_)
+            # r_name = ontology[id_]['name']
+            # print(f'Appended: {r_name} ({id_})')
+        # if 'accumbens' in ontology[id_]['name'].lower():
+        #     region_ids.append(id_)
+            # r_name = ontology[id_]['name']
+            # print(f'Appended: {r_name} ({id_})')
+
+    return region_ids
+
+def atlas_to_cp_mask(atlas_vis, region_ids):
+    """Convert an integer-valued segmentation of the mouse brain into a ternary mask (0:background, 1:brain (-CP), 2: CP)
+
+    Parameters:
+    ===========
+    atlas_vis : array of ints
+        An array of size [X,Y,Z] where each element contains the subregion ID of the corresponding voxel in the mouse brain
+    region_ids : array of ints
+        An array containing all of the region IDs corresponding to the CP
+
+    Returns:
+    ========
+    all_non_cp : array of ints
+        An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain
+    """
+    all_cp = np.zeros(np.shape(atlas_vis))
+    for id in region_ids:
+        all_cp = np.logical_or(all_cp,atlas_vis==id)
+
+    all_non_cp = np.zeros(np.shape(atlas_vis))
+    all_non_cp[atlas_vis != 0] = 1.0
+    all_non_cp[all_cp == 1.0] = 2.0
+    
+    return all_non_cp
+
+def compute_all_dice_scores(atlas_vis, manual_vis):
+    """Compute the Dice score between the registered atlas segmentation and a manual anatomical segmentation for the CP and for the whole brain
+
+    Parameters
+    ==========
+    atlas_vis : array of ints
+        An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain; Registered atlas segmentation
+    manual_vis : array of ints
+        An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain; Manual anatomical segmentation
+
+    Returns
+    =======
+    dice_cp : float
+        The dice score when comparing the registered atlas segmentation and a manual anatomical segmentation for the CP
+    dice_wb : float
+        The dice score when comparing the registered atlas segmentation and a manual anatomical segmentation for the whole brain        
+    """
+    # Compute Dice Score for CP+ACB
+    atlas_vis_cp = atlas_vis.copy()
+    atlas_vis_cp[atlas_vis_cp==1.0] = 0
+    atlas_vis_cp[atlas_vis_cp==2.0] = 1.0
+    
+    manual_vis_cp = manual_vis.copy()
+    manual_vis_cp[manual_vis_cp==1.0] = 0
+    manual_vis_cp[manual_vis_cp==2.0] = 1.0
+
+    dice_cp = compute_dice_score(atlas_vis_cp, manual_vis_cp)
+
+    # Compute Dice Score for Whole Brain 
+    atlas_vis_cp = atlas_vis.copy()
+    atlas_vis_cp[atlas_vis_cp == 2.0] = 1.0
+    
+    manual_vis_cp = manual_vis.copy()
+    manual_vis_cp[manual_vis_cp==2.0] = 1.0
+
+    dice_wb = compute_dice_score(atlas_vis_cp, manual_vis_cp)
+
+    return dice_cp, dice_wb
+
+def compute_dice_score(atlas_vis, manual_vis):
+    """Compute the Dice score between the registered atlas segmentation and a manual anatomical segmentation for the CP and for the whole brain
+
+    Parameters
+    ==========
+    atlas_vis : array of ints
+        An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in a binarized mouse brain; Registered atlas segmentation
+    manual_vis : array of ints
+        An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in a binarized mouse brain; Manual anatomical segmentation
+
+    Returns:
+    ========
+    out : float
+        The dice score computed between atlas_vis and manual_vis
+    """
+    atlas_area = np.sum(atlas_vis)
+    manual_area = np.sum(manual_vis)
+
+    intersection = np.logical_and(atlas_vis, manual_vis)
+    int_area = np.sum(intersection)
+
+    return (2*int_area) / (atlas_area + manual_area)
+    
+def npz_to_Nifti1(npzPath, outPath, affine, key=None, saveImage = False):
+    """Convert an (.npz) file into a Nifti1 (.nii.gz) file using the provided affine matrix
+
+    Parameters
+    ==========
+    npzPath : str
+        A file path pointing to an npz file containing image data
+    outPath : str
+        A file path pointing to the desired output location for the converted Nifti1 file
+    affine : List of float
+        A 4x4 affine matrix used to initialzie the Nifti1 Image
+    key : str
+        Default - None; The key corresponding to the image data stored at 'npzPath'. If None, use the first key.
+    saveImage : bool
+        Default - False; If True, save the Nifti1 file at outPath
+    """
+    
+    I = np.load(npzPath)
+    
+    if key == None:
+        key = [k for k in I][0]
+
+    I = I[key]
+
+    I = nib.Nifti1Image(I, affine = affine)
+    I.header['xyzt_units'] = 3 # Sets the unit type to um (Default: 0 == Unknown)
+
+    if saveImage:
+        nib.save(I, outPath)
+        print(f'Saved image at {outPath}')
+
+def compute_all_hausdorff_scores(atlas_bound_coords, manual_bound_coords):
+    """ Generate a NxM matrix of Euclidean distances corresponding to the Euclidean distances between a set of N points and another set of M points, extract the N+M Hausdorff distances, and return several performance metrics corresponding to the similarity of the N points from atlas_bound_coords and manual_bound_coords.
+
+    Parameters
+    ==========
+    atlas_bound_coords : array of float
+       A 3xN array containing the x,y,z coordinates for all of the points defining a regional boundary in the registered mouse brain atlas 
+    manual_bound_coords : array of float
+       A 3xM array containing the x,y,z coordinates for all of the points defining a regional boundary in the manual anatomical segmentation
+
+    Returns
+    =======
+    h_dist : float
+        The Hausdorff Score; i.e. the maximum of all the Hausdorff distances
+    h_dist_50 : float
+        The 50th percentile from all of the Hausdorff distances
+    h_dist_95 : float
+        The 95th percentile from all of the Hausdorff distances
+    all_min_dist : array of float
+        A [N+M] array of all the Hausdorff distances 
+    """
+
+    atlas_bound_coords = atlas_bound_coords.reshape((np.shape(atlas_bound_coords)[1], np.shape(atlas_bound_coords)[0]))
+    manual_bound_coords = manual_bound_coords.reshape((np.shape(manual_bound_coords)[1], np.shape(manual_bound_coords)[0]))
+
+    dist_matrix = [[dist(a,m) for a in atlas_bound_coords] for m in manual_bound_coords]    
+    min0 = np.min(dist_matrix,axis=0)
+    min1 = np.min(dist_matrix,axis=1)
+    all_min_dist = np.concatenate([min0,min1])
+
+    h_dist = np.max(all_min_dist)
+    h_dist_50 = np.percentile(all_min_dist, 50)  
+    h_dist_95 = np.percentile(all_min_dist, 95)
+        
+    return h_dist, h_dist_50, h_dist_95, all_min_dist
+
+def ternary_to_boundary(ternary_mask):
+    """ Convert a 3D ternarized image into the boundaries between regions 0,1+2 and 0+1,2.
+
+    Parameters
+    ==========
+    ternary_mask : array of int
+        An array of size [X,Y,Z] where each element corresponds to the type of data at each voxel in the ternarized mouse brain
+
+    Returns
+    =======
+    cp_3d_bound : array of int
+        An array of size [X,Y,Z] where each element is either 1 if it is along the boundary of the CP and 0 otherwise
+    wb_3d_bound : array of int
+        An array of size [X,Y,Z] where each element is either 1 if it is along the outer boundary of the cortex and 0 otherwise        
+    """
+
+    num_slices = np.shape(ternary_mask)[0]
+    
+    # Set non-CP to 0 and CP to 1 and compute boundary around CP
+    t_copy = ternary_mask.copy()
+    t_copy[t_copy == 1.0] = 0
+    t_copy[t_copy == 2.0] = 1.0
+    cp_3d_bound = []
+    for idx in range(num_slices):
+        ternary_slice = t_copy[idx,:,:]
+        ternary_vis_erode = binary_erosion(ternary_slice)
+        ternary_bound = ternary_slice - ternary_vis_erode
+        cp_3d_bound.append(ternary_bound)
+    cp_3d_bound = np.stack(cp_3d_bound)
+
+    # Set CP to 1 and compute boundary around WB
+    t_copy = ternary_mask.copy()
+    t_copy[t_copy == 2.0] = 1.0
+    wb_3d_bound = []
+    for idx in range(num_slices):
+        ternary_slice = t_copy[idx,:,:]
+        ternary_vis_erode = binary_erosion(ternary_slice)
+        ternary_bound = ternary_slice - ternary_vis_erode
+        wb_3d_bound.append(ternary_bound)
+    wb_3d_bound = np.stack(wb_3d_bound)    
+    
+    return cp_3d_bound, wb_3d_bound
+    
+def plot_all_slices(atlas_mask, curr_mask, low_img_path, outdir, outdir_fname):
+    """Plot the integer-valued masks from the registered mouse brain atlas and the manual anatomical segmentation over the corresponding microscopy image.
+
+    Parameters
+    ==========
+    atlas_mask : array of int
+        An array of size [X,Y,Z] defining an integer-valued image of the registered mouse brain atlas
+    curr_mask : array of int
+        An array of size [X,Y,Z] defining an integer-valued image of manual anatomical segmentation
+    low_img_path : str
+        A file path pointing to the location of the corresponding low resolution image used to generate both masks
+    outdir : str
+        A file path poining to the directory where the plot should be saved
+    outdir_fname : str
+        
+        
+        
+    """
+    # Convert .npz file at low_img_path to .nii.gz
+    npz_dir, npz_fname = os.path.split(low_img_path)
+    out_fname = os.path.splitext(npz_fname)[0] + '.nii.gz'
+    out_path = os.path.join(outdir,out_fname)
+
+    # If it doesn't already exist in outdir, convert the npz file to a nifti file
+    if not os.path.exists(out_path):    
+        key = 'I'
+        resolution, xshift, yshift, zshift = 50.0, 3975, 5675, -6575 # For 50um Yongsoo atlas
+        affine = np.asarray([[-resolution,0,0,xshift],[0,-resolution,0,yshift],[0,0,resolution,zshift],[0,0,0,1]])
+        I = npz_to_Nifti1(low_img_path, out_path, affine, key, True)
+
+    img = nib.load(out_path)
+    img = img.get_fdata()
+    vmin = np.percentile(np.unique(img[0]), 10)
+    vmax = np.max(np.unique(img[0]))
+    num_slices = np.shape(atlas_mask)[0]
+    fig, axs = plt.subplots(num_slices,3,layout='constrained')
+    
+    if "overlap" in out_fname:
+        atlas_vis_cp = atlas_mask.copy()
+        atlas_vis_cp[atlas_vis_cp==1.0] = 0
+        atlas_vis_cp[atlas_vis_cp==2.0] = 1.0
+        manual_vis_cp = curr_mask.copy()
+        manual_vis_cp[manual_vis_cp==1.0] = 0
+        manual_vis_cp[manual_vis_cp==2.0] = 1.0
+        intersection = np.logical_and(atlas_vis_cp, manual_vis_cp)
+    
+        all_dice_cp = 0
+        all_dice_wb = 0
+        
+        for idx in range(num_slices):
+            dice_cp, dice_wb = compute_all_dice_scores(atlas_mask[idx,:,:], curr_mask[idx,:,:])
+            all_dice_cp += dice_cp
+            all_dice_wb += dice_wb
+            
+            axs[idx,0].imshow(img[idx,:,:],vmin=vmin,vmax=vmax)
+            axs[idx,0].imshow(atlas_mask[idx,:,:], alpha=0.3)
+            axs[idx,0].set_title('Atlas')
+            axs[idx,1].imshow(img[idx,:,:],vmin=vmin,vmax=vmax)
+            axs[idx,1].imshow(curr_mask[idx,:,:], alpha=0.3)
+            axs[idx,1].set_title('Manual')
+            axs[idx,2].imshow(img[idx,:,:],vmin=vmin,vmax=vmax)
+            axs[idx,2].imshow(intersection[idx,:,:], alpha=0.3)
+            axs[idx,2].set_title(f'Intersection ({dice_cp:.2f},{dice_wb:.2f})')
+    
+        fig.suptitle(f'{out_fname}, ({all_dice_cp/num_slices:.2f},{all_dice_wb/num_slices:.2f})')
+
+    # Make boundary figure
+    else:
+        for idx in range(num_slices):
+            axs[idx,0].imshow(img[idx,:,:],vmin=vmin,vmax=vmax, label = "")
+            axs[idx,0].imshow(atlas_mask[idx,:,:], alpha=0.5, cmap = 'Greens', label = "Atlas")
+            axs[idx,0].set_title('Atlas')
+            axs[idx,1].imshow(img[idx,:,:],vmin=vmin,vmax=vmax, label = "")
+            axs[idx,1].imshow(curr_mask[idx,:,:], alpha=0.5, cmap = 'Reds', label = "Manual")
+            axs[idx,1].set_title('Manual')
+            axs[idx,2].imshow(img[idx,:,:],vmin=vmin,vmax=vmax, label = "")
+            axs[idx,2].imshow(atlas_mask[idx,:,:], alpha=0.25, cmap = 'Greens', label = "Atlas")
+            axs[idx,2].imshow(curr_mask[idx,:,:], alpha=0.25, cmap = 'Reds', label = "Manual")
+            axs[idx,2].set_title('Overlap')
+        
+        fig.suptitle(f'{out_fname}')    
+            
+    fig.set_size_inches(num_slices,num_slices*2)
+    fig.savefig(os.path.join(outdir, outdir_fname), dpi=500)
+        

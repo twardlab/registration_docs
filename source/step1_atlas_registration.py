@@ -9,6 +9,7 @@ import time
 import torch
 import os
 import sys
+import tifffile
 
 from step1_help import str_to_2D_mat, draw_stack, trapezoid, gA_from_gid
 
@@ -73,6 +74,8 @@ def main():
         if any of the files provided to the '-low' argument cannot be accessed
     Exception
         if the number of arguments passed to 'AJ' does not equal the number of arguments passed to 'low'
+    Exception
+        if the provided atlases don't have a .vtk, .nii, or .tif file extension
     ValueError
         if the argument 'A' is not of the correct form
     ValueError
@@ -90,7 +93,7 @@ def main():
     parser.add_argument('orientation', type = str, choices = ['W','L','R'], help = 'The portion of the brain shown in the dataset (Whole, Left hemisphere, Right hemisphere)')
     parser.add_argument('-low_paths', type = str, nargs='*', required = True, help = 'List of low-res files in Anterior to Posterior order')
     parser.add_argument('-outdir', type = str, required = True, help = 'Output directory for all files generated from this script')
-    parser.add_argument('-atlas_paths', type = str, nargs = 3, required = True, help = 'List of 3 allen atlas .vtk files')
+    parser.add_argument('-atlas_paths', type = str, required = True, help = 'List of 3 allen atlas .vtk files or 1 .tiff file')
     parser.add_argument('-to_flip', nargs = '*', type=int, default = -1, help = 'Indices of which slices to flip from low_res_files')
     parser.add_argument('-device', type=str, choices = ['cpu', 'cuda:0', 'cuda:1', 'mps'], required = True, help = 'Device for torch computations')
     parser.add_argument('-A', type = str, help = 'Initial guess - [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
@@ -174,9 +177,13 @@ def main():
     import donglab_workflows as dw
     sys.path.append(args.e_path)
     import emlddmm
-    
-    seg_name = atlas_names[2]
-    atlas_names = atlas_names[:2]
+
+    if len(atlas_names) == 3:
+        seg_name = atlas_names[2]
+        atlas_names = atlas_names[:2]
+
+    if type(atlas_names) is str:
+        atlas_names = [atlas_names]
 
     # Perform checks on input data
     if not os.path.exists(outdir):
@@ -188,7 +195,17 @@ def main():
     # =================================================================
     I = []
     for atlas_name in atlas_names:
-        xI,I_,title,names = emlddmm.read_data(atlas_name)
+        if '.vtk' in atlas_name or '.nii' in atlas_name:
+            xI,I_,title,names = emlddmm.read_data(atlas_name)
+        elif 'tif' in atlas_name:
+            I_ = tifffile.imread(atlas_name)
+            xI = [np.arange(-n/2*50+25, n/2*50+25,50) for n in np.shape(I_)[1:]]
+            title = 'atlas'
+            names = 'atlas'
+        else:
+            fname, fext = os.path.splitext(atlas_name)
+            raise Exception(f'Atlas must have a .vtk, .nii., .nii.gz, or .tif file extension. {fext} was provided')
+
         I_ = I_.astype(np.float32)
         I_ /= np.mean(np.abs(I_))
     
@@ -203,11 +220,21 @@ def main():
         I.append(I_)
 
     I = np.concatenate(I)
+    
+    if normalizeData:
+        if True: # flip_contrast optional arg
+            I = 255.0 - I
+            I = I / 255.0
+
     I[0] = I[0]**0.25
-    I[0] /= np.mean(np.abs(I_[0]))
+    # I[0] /= np.mean(np.abs(I_[0]))
+    Imin = np.min(I[0])
+    Imax = np.max(I[0])
+    I[0] = (I[0]-Imin)/(Imax-Imin)
+    
     dI = np.array([x[1] - x[0] for x in xI])
     XI = np.stack(np.meshgrid(*xI,indexing='ij'),-1)
-    
+
     # =================================
     # ===== (2) Load the 10x data =====
     # =================================
@@ -333,6 +360,9 @@ def main():
     xJ = [[torch.tensor(x,device=device,dtype=dtype) for x in xJi] for xJi in xJnp]
     XJ = [ torch.stack(torch.meshgrid(x[0],x[1],x[2],indexing='ij'),-1) for x in xJ]
     XI = torch.stack(torch.meshgrid(*xI,indexing='ij'),-1)
+
+    # print([len(xI0) for xI0 in xI])
+    # print(xI)
     
     if saveFig3:
         t = torch.linspace(-3000,3000,1000)
@@ -343,8 +373,10 @@ def main():
     # ========================================================================
     # ===== (5) Compute other matrices and scalars for later computation =====
     # ========================================================================
+    dI = np.array([50.0, 50.0, 50.0])
     DI = torch.prod(torch.tensor(dI,device=device,dtype=dtype))
     W_ = (I[0] > 0).to(dtype)
+    
     DW = torch.stack(torch.gradient(W_,spacing=dI.tolist(),dim=(0,1,2)),-1)
     
     if saveFig4:
@@ -372,7 +404,7 @@ def main():
                         tosum1 = DW[...,i1]
                     else:
                         tosum1 = DW[...,i1]*XI[...,j1]
-                                                                
+
                     gid[count0,count1] = torch.sum(tosum0*tosum1)*DI
                     gid[count1,count0] = gid[count0,count1]                                
                     
@@ -753,6 +785,8 @@ def main():
         
         with torch.no_grad():
             gA = gA_from_gid(gid,A)
+            # print(f'gA: {gA}')
+            # print(f'{A.grad[:3].reshape(-1)}')
             Agrad = torch.linalg.solve(gA,A.grad[:3].reshape(-1)).reshape(3,4)
             A[:3] -= eA*Agrad                        
             A.grad.zero_()

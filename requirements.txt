@@ -5,4 +5,5 @@ nibabel
 numpy
 scipy
 scikit-image
+tifffile
 torch
