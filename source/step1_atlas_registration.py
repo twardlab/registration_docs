@@ -93,7 +93,7 @@ def main():
     parser.add_argument('orientation', type = str, choices = ['W','L','R'], help = 'The portion of the brain shown in the dataset (Whole, Left hemisphere, Right hemisphere)')
     parser.add_argument('-low_paths', type = str, nargs='*', required = True, help = 'List of low-res files in Anterior to Posterior order')
     parser.add_argument('-outdir', type = str, required = True, help = 'Output directory for all files generated from this script')
-    parser.add_argument('-atlas_paths', type = str, required = True, help = 'List of 3 allen atlas .vtk files or 1 .tiff file')
+    parser.add_argument('-atlas_paths', type = str, nargs='*', required = True, help = 'List of 3 allen atlas .vtk files or 1 .tiff file')
     parser.add_argument('-to_flip', nargs = '*', type=int, default = -1, help = 'Indices of which slices to flip from low_res_files')
     parser.add_argument('-device', type=str, choices = ['cpu', 'cuda:0', 'cuda:1', 'mps'], required = True, help = 'Device for torch computations')
     parser.add_argument('-A', type = str, help = 'Initial guess - [[x,x,x,x],[x,x,x,x],[x,x,x,x],[x,x,x,x]]; If not supplied, a sensible default will be produced based on orientation to reproduce previous work with the Yang lab\'s MORF project')
