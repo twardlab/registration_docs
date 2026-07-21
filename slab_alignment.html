@@ -23,6 +23,9 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
           <a href="step3_help.html" title="Step 3 helper functions"
              accesskey="P">previous</a> |</li>
         <li class="nav-item nav-item-0"><a href="index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
@@ -35,8 +38,64 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <section id="slab-alignment-using-a-precomputed-transform">
-<h1>Slab Alignment Using a Precomputed Transform<a class="headerlink" href="#slab-alignment-using-a-precomputed-transform" title="Link to this heading">¶</a></h1>
+  <section id="module-slab_alignment">
+<span id="slab-alignment-using-a-precomputed-transform"></span><h1>Slab Alignment Using a Precomputed Transform<a class="headerlink" href="#module-slab_alignment" title="Link to this heading">¶</a></h1>
+<p>This script is intended to be used at the command line and will apply a precomputed registration transform to a set of sequential microscopy (.npz) images. The main output from this script is the 3D reconstruction of the transformed images, saved as a .vtk file.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="slab_alignment.main">
+<span class="sig-prename descclassname"><span class="pre">slab_alignment.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#slab_alignment.main" title="Link to this definition">¶</a></dt>
+<dd><section id="command-line-arguments">
+<h2>Command line arguments<a class="headerlink" href="#command-line-arguments" title="Link to this heading">¶</a></h2>
+<dl class="simple">
+<dt>dataset<span class="classifier">str</span></dt><dd><p>The name of the dataset. This will included in several of the output file names.</p>
+</dd>
+<dt>target_files<span class="classifier">list of str</span></dt><dd><p>List of low-res files in Anterior to Posterior order containing image data</p>
+</dd>
+<dt>-tform_file<span class="classifier">str</span></dt><dd><p>The .npz file generated from atlas registration which contains all necessary transformation data</p>
+</dd>
+<dt>-atlas_files<span class="classifier">str or list of str</span></dt><dd><p>List of 3 allen atlas .vtk files or 1 .tiff file</p>
+</dd>
+<dt>-outdir<span class="classifier">str</span></dt><dd><p>The directory where all output files should be saved</p>
+</dd>
+<dt>-epath<span class="classifier">str</span></dt><dd><p>Default - ‘’; Local path to the emlddmm library. If no argument is supplied, the library will be cloned locally from its GitHub repository</p>
+</dd>
+<dt>-dslice<span class="classifier">float</span></dt><dd><p>Default: 500.0; Thickness of each slab (in um) of this dataset. This should be the same value as was used in registration.</p>
+</dd>
+<dt>-dI<span class="classifier">float</span></dt><dd><p>Default: 50.0; The resolution (um) of the atlas that was used in registration, even if it differs from the atlases provided here</p>
+</dd>
+<dt>-dsample<span class="classifier">float</span></dt><dd><p>Default: 50.0; The desired output resolution (um)</p>
+</dd>
+<dt>-zm<span class="classifier">bool</span></dt><dd><p>Default - False; If True (i.e. the flag is passed), use the zero mean convention when loading input data. If this argument was passed during registration, pass it again here.</p>
+</dd>
+<dt>-debug<span class="classifier">bool</span></dt><dd><p>Default - False; If True (i.e. the flag is passed), run the script in DEBUG mode</p>
+</dd>
+</dl>
+</section>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="slab_alignment.trapezoid">
+<span class="sig-prename descclassname"><span class="pre">slab_alignment.</span></span><span class="sig-name descname"><span class="pre">trapezoid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">J</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dI</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dslice</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#slab_alignment.trapezoid" title="Link to this definition">¶</a></dt>
+<dd><p>Models the cutting of a big piece of tissue into a thin slab. In order to make the operation differentiable, we multiply the image by a trapezoid instead of a rectangle. This function defines the trapezoid by which we will multiply the image. This is an example of a processing step described in projective LDDMM. See “Projective diffeomorphic mapping of molecular digital pathology with tissue MRI” (<a class="reference external" href="https://doi.org/10.1038/s44172-022-00044-1">https://doi.org/10.1038/s44172-022-00044-1</a>)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>torch.tensor</em>) – An nd-array that stores the slice location of each voxel in a volume</p></li>
+<li><p><strong>i</strong> (<em>int</em>) – The index of the slice to be processed</p></li>
+<li><p><strong>J</strong> (<em>numpy.ndarray</em>) – An array of all the 3D slice data in Anterior-Posterior order</p></li>
+<li><p><strong>dI</strong> (<em>numpy.ndarray</em>) – The resolution of the atlas along each of the 3 axes</p></li>
+<li><p><strong>dslice</strong> (<em>float</em>) – The thickness of the slice to be processed in microns</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>out</strong> – The trapezoid by which we will multiply an image</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>torch.tensor</p>
+</dd>
+</dl>
+</dd></dl>
+
 </section>
 
 
@@ -46,6 +105,17 @@
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="Main">
         <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Slab Alignment Using a Precomputed Transform</a><ul>
+<li><a class="reference internal" href="#slab_alignment.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li><a class="reference internal" href="#slab_alignment.trapezoid"><code class="docutils literal notranslate"><span class="pre">trapezoid()</span></code></a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
   <div>
     <h4>Previous topic</h4>
     <p class="topless"><a href="step3_help.html"
@@ -78,6 +148,9 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
         <li class="right" >
           <a href="step3_help.html" title="Step 3 helper functions"
              >previous</a> |</li>
