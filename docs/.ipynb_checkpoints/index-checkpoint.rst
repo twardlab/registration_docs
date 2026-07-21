@@ -14,6 +14,25 @@ Welcome to the mouse brain registration documentation!
    step1
    step2
    step3
+   slab_alignment
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Jupyter Notebook Example - 3 Registration Steps
+
+   notebooks/registration_script_example.ipynb
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Jupyter Notebook Example - Slab Alignment
+
+   notebooks/slab_alignment_example.ipynb
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Jupyter Notebook - Computation of neuron regional probabilities
+
+   notebooks/compute_neuron_probabilities.ipynb
 
 Indices and tables
 ==================
