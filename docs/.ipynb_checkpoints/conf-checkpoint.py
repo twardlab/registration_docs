@@ -33,6 +33,9 @@ import os
 import sys
 sys.path.append('/home/abenneck/Desktop/registration_docs/source')
 sys.path.append('/home/runner/work/registration_docs/registration_docs/source')
+sys.path.append('/home/runner/work/registration_docs/registration_docs/docs')
+sys.path.append('/home/runner/work/registration_docs/registration_docs/docs/scripts')
+sys.path.append('/home/runner/work/registration_docs/registration_docs/docs/notebooks')
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
