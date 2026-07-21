@@ -14,6 +14,7 @@ Welcome to the mouse brain registration documentation!
    step1
    step2
    step3
+   slab_alignment
 
 Indices and tables
 ==================
