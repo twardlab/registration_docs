@@ -31,8 +31,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 import os
 import sys
-sys.path.append('/home/abenneck/Desktop/registration_docs/source')
-sys.path.append('/home/runner/work/registration_docs/registration_docs/source')
+# sys.path.append('/home/abenneck/Desktop/registration_docs/source')
+# sys.path.append('/home/runner/work/registration_docs/registration_docs/source')
 sys.path.append('/home/runner/work/registration_docs/registration_docs/docs')
 sys.path.append('/home/runner/work/registration_docs/registration_docs/docs/scripts')
 sys.path.append('/home/runner/work/registration_docs/registration_docs/docs/notebooks')
@@ -42,4 +42,4 @@ sys.path.append('/home/runner/work/registration_docs/registration_docs/docs/note
 
 html_theme = 'nature'
 
-html_static_path = ['_static']
+# html_static_path = ['_static']
