@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Registration Script (Steps 1-3) Example &#8212; Mouse Brain Atlas Registration 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css?v=279e0f84" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Slab Alignment Example" href="slab_alignment_example.html" />
+    <link rel="prev" title="Slab Alignment Using a Precomputed Transform" href="../slab_alignment.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="slab_alignment_example.html" title="Slab Alignment Example"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../slab_alignment.html" title="Slab Alignment Using a Precomputed Transform"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Registration Script (Steps 1-3) Example</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="Registration-Script-(Steps-1-3)-Example">
+<h1>Registration Script (Steps 1-3) Example<a class="headerlink" href="#Registration-Script-(Steps-1-3)-Example" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>&quot;&quot;&quot;
+This notebook provides the code necessary to fully register one of the datasets analyzed in the Denditome MORF project.
+
+Please download this notebook and place it into an empty directory.
+- All of the necessary GitHub repositiories will be cloned to the current working directory
+- All of the necessary non-native Python libraries will be installed to the current working directory
+- All of the necessary data will be downloaded + unzipped to the current working directory
+- Several folders to save the outputs from this registration pipeline will be created and filled during the registration process
+
+Notes:
+- There will be several RuntimeWarning and UserWarning messages during the registration process. This is the expected behavior and these messages can be disregarded.
+- This notebook has only been tested on a Linux system, and therefore may not function properly on a system operating on Windows OS or Mac OS.
+- This notebook will take 2.5-3 hours to fully register the example dataset.
+&quot;&quot;&quot;
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+import sys
+import requests
+
+sys.path.append(os.getcwd())
+</pre></div>
+</div>
+</div>
+<section id="Clone-necessary-code-repositories-from-GitHub,-install-non-native-Python-libraries,-and-download-example-dataset-+-atlases">
+<h2>Clone necessary code repositories from GitHub, install non-native Python libraries, and download example dataset + atlases<a class="headerlink" href="#Clone-necessary-code-repositories-from-GitHub,-install-non-native-Python-libraries,-and-download-example-dataset-+-atlases" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Clone necessary repos from GitHub
+os.mkdir(&quot;registration_docs&quot;)
+os.system(&quot;git clone https://github.com/twardlab/registration_docs registration_docs&quot;)
+
+os.mkdir(&quot;emlddmm&quot;)
+os.system(&quot;git clone https://github.com/twardlab/emlddmm emlddmm&quot;)
+
+os.mkdir(&quot;donglab_workflows&quot;)
+os.system(&quot;git clone https://github.com/twardlab/donglab_workflows donglab_workflows&quot;)
+
+# Install necessary non-native Python libraries in order to run the 3 scripts
+os.system(&quot;pip install argparse numpy matplotlib nibabel scipy scikit-image&quot;)
+os.system(&quot;pip3 install torch torchvision torchaudio&quot;)
+
+# Download example dataset + atlases from twardlab.com
+data_url = &#39;https://twardlab.com/data/morf/dendritome_data.zip&#39;
+response = requests.get(data_url, stream=True)
+
+if response.status_code == 200:
+    with open(&#39;dendritome_data.zip&#39;, &#39;wb&#39;) as f:
+        for chunk in response.iter_content(1024):
+            f.write(chunk)
+    print(&#39;Zip file downloaded successfully&#39;)
+else:
+    print(&#39;Failed to download zip file. Please check that your network connection is stable.&#39;)
+
+# If you do not have unzip installed, you may need to run this line with adminsrator privileges.
+# os.system(&quot;sudo -S apt install unzip&quot;)
+os.system(&quot;unzip -d dendritome_data dendritome_data.zip&quot;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Step-1-(Atlas-to-low-resolution)">
+<h2>Step 1 (Atlas to low resolution)<a class="headerlink" href="#Step-1-(Atlas-to-low-resolution)" title="Link to this heading">¶</a></h2>
+<p>The below cell will register the Allen Mouse Brain Atlas to all of the low resolution images. The outputs from this cell will be saved in ‘step1_outputs’ and used in Step 3.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>script_path = &#39;registration_docs/source/step1_atlas_registration.py&#39;
+
+# Example where all positional/required arguments, to_flip, device, and A are provided
+brain = &#39;TME08-1&#39;
+orientation = &#39;W&#39; # Note that this argument specifies that this dataset contains images of a WHOLE brain (as opposed to a single hemisphere)
+target_files =  [&#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_01_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_02_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_03_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_04_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_05_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_06_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_07_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_08_ch_0_pow_[0.125]_down.npz&#39;]
+
+outdir = &#39;step1_outputs&#39;
+if not os.path.exists(outdir):
+    os.mkdir(outdir)
+
+atlas_names = [&#39;dendritome_data/atlases/ara_nissl_50.vtk&#39;,
+               &#39;dendritome_data/atlases/average_template_50.vtk&#39;,
+               &#39;dendritome_data/atlases/annotation_50.vtk&#39;]
+
+to_flip = [0,1,3,5,7]
+n_iter = 7500 # Note that in practice, this variable is normally set to 40000. In this example, we decided to decrease it to 5000 in order to save time for the user.
+device = &#39;cuda:0&#39;
+d_path = &#39;donglab_workflows&#39;
+e_path = &#39;emlddmm&#39;
+A = &quot;[[-1.0,0.0,0.0,500.0],[0.0,0.0,-1.0,0.0],[0.0,1.0,0.0,0.0],[0.0,0.0,0.0,1.0]]&quot;
+
+cmd_str = f&#39;python3 {script_path} {brain} {orientation} -low_paths {target_files[0]} {target_files[1]} {target_files[2]} {target_files[3]} {target_files[4]} {target_files[5]} {target_files[6]} {target_files[7]} -outdir {outdir} -atlas_paths {atlas_names[0]} {atlas_names[1]} {atlas_names[2]} -to_flip {to_flip[0]} {to_flip[1]} {to_flip[2]} {to_flip[3]} {to_flip[4]} -n_iter {n_iter} -device {device} -d_path {d_path} -e_path {e_path} -A {A}&#39;
+
+# Optional flags to include
+save_fig0 = False
+save_fig1 = False
+save_fig2 = False
+save_fig3 = False
+save_fig4 = False
+save_fig5 = False
+save_fig6 = False
+normalizeData = True
+zeroMean = True
+largerRGBfig = False
+
+if save_fig0:
+    cmd_str += &#39; -save_fig0&#39;
+if save_fig1:
+    cmd_str += &#39; -save_fig1&#39;
+if save_fig2:
+    cmd_str += &#39; -save_fig2&#39;
+if save_fig3:
+    cmd_str += &#39; -save_fig3&#39;
+if save_fig4:
+    cmd_str += &#39; -save_fig4&#39;
+if save_fig5:
+    cmd_str += &#39; -save_fig5&#39;
+if save_fig6:
+    cmd_str += &#39; -save_fig6&#39;
+
+if not normalizeData:
+    cmd_str += &#39; -norm&#39;
+if not zeroMean:
+    cmd_str += &#39; -zm&#39;
+if largerRGBfig:
+    cmd_str += &#39; --largerRGBfig&#39;
+
+print(&#39;Starting registration of atlas data to 10x data...&#39;)
+os.system(cmd_str)
+print(&#39;Finished registration of atlas data to 10x data&#39;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Step-2-Example-(High-resolution-to-low-resolution)">
+<h2>Step 2 Example (High resolution to low resolution)<a class="headerlink" href="#Step-2-Example-(High-resolution-to-low-resolution)" title="Link to this heading">¶</a></h2>
+<p>The below cell will register all of the high resolution images to all of the low resolution images. In particular, it will iterate over each high resolution image and register this image to the corresponding low resolution image. The outputs from this cell will be saved in ‘step2_outputs’ and used in Step 3</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>script_path = &#39;registration_docs/source/step2_atlas_registration.py&#39;
+dataset = &#39;TME08-1&#39;
+
+low_img_paths = [&#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_01_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_02_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_03_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_04_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_05_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_06_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_07_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_08_ch_0_pow_[0.125]_down.npz&#39;]
+
+high_img_paths = [&#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_01A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_01B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_02A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_02B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_03A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_03B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_04A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_04B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_05A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_05B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_06A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_06B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_07A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_07B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_08A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_08B_ch_0_pow_[0.125]_down.npz&#39;]
+
+all_high_num = [&#39;01A&#39;, &#39;01B&#39;,&#39;02A&#39;, &#39;02B&#39;, &#39;03A&#39;, &#39;03B&#39;, &#39;04A&#39;, &#39;04B&#39;, &#39;05A&#39;, &#39;05B&#39;, &#39;06A&#39;, &#39;06B&#39;, &#39;07A&#39;, &#39;07B&#39;, &#39;08A&#39;, &#39;08B&#39;]
+
+outdir = &#39;step2_outputs&#39;
+if not os.path.exists(outdir):
+    os.mkdir(outdir)
+
+# In practice, these shifts need to be manually determined. This can be done by setting checkInit to True and iteratively modifying the shifts
+# until the low and high resolution images have a reasonable initial alignment.
+# The following shifts were manually determined by a researcher who registered this specific dataset.
+all_shifts = [[0,1000,2000], [0,1000,-1100], [0,500,2000], [0,600,-1800], [0,500,2700], [0,500,-1900], [0,800,2900], [0,1000,-2000], [0,300,3200], [0,100,-2700], [0,500,3300], [0,300,-3200], [0,300,3500], [0,200,-3300], [0,500,3200], [0,300,-3800]]
+
+e_path = &#39;emlddmm&#39;
+d_path = &#39;donglab_workflows&#39;
+
+gamma = False
+checkInit = False
+zeroMean = True
+useRigidTransform = False
+
+low_idx = 0
+# Register every high_res image
+for high_idx in range(len(high_img_paths)):
+
+    # Increment the low_idx every other
+    if high_idx != 0 and high_idx % 2 == 0:
+        low_idx += 1
+
+    # Define the arguments
+    low_path = low_img_paths[low_idx]
+    high_path = high_img_paths[high_idx]
+    high_num = all_high_num[high_idx]
+    shifts = all_shifts[high_idx]
+
+    cmd_str = f&#39;python3 {script_path} {dataset} -low_path {low_path} -high_path {high_path} -high_num {high_num} -outdir {outdir} -shifts {shifts[0]} {shifts[1]} {shifts[2]} -e_path {e_path} -d_path {d_path}&#39;
+
+    # Append flags if necessary
+    if gamma:
+        cmd_str += &#39; -gamma&#39;
+
+    if checkInit:
+        cmd_str += &#39; -checkInit&#39;
+
+    if not zeroMean:
+        cmd_str += &#39; -zeromean&#39;
+
+    if useRigidTransform:
+        cmd_str += &#39; -useRigidTransform&#39;
+
+    # Run the command line script as defined above
+    print(f&#39;Starting registration of the high_res img ({high_path}) to the low_res img ({low_path})...&#39;)
+    os.system(cmd_str)
+    print(f&#39;Finished registration of the high_res img ({high_path}) to the low_res img ({low_path})&#39;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Step-3-Example">
+<h2>Step 3 Example<a class="headerlink" href="#Step-3-Example" title="Link to this heading">¶</a></h2>
+<p>The below cell will register all of the neuron reconstruction (.swc) files to the high resolution images. The outputs of this cell will be saved in ‘step3_outputs’ and will contain the combined low_res/high_res/neuron data for every low_res slice, and the registered .swc files for every neuron.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>script_path = &#39;registration_docs/source/step3_atlas_registration.py&#39;
+
+# Define all input variables
+dataset = &#39;TME08-1&#39;
+orientation = &#39;W&#39;
+neuron_dir = &#39;dendritome_data/neuron_reconstructions&#39;
+low_to_high_dir = &#39;step2_outputs&#39;
+tform = &#39;step1_outputs/transformation_outputs.npz&#39;
+
+low_img_paths = [&#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_01_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_02_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_03_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_04_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_05_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_06_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_07_ch_0_pow_[0.125]_down.npz&#39;,
+                 &#39;dendritome_data/10x_images/Camk2a-MORF3-D1Tom_TME08-1_10x_08_ch_0_pow_[0.125]_down.npz&#39;]
+
+low_imd_ids = [&#39;01&#39;,&#39;02&#39;,&#39;03&#39;,&#39;04&#39;,&#39;05&#39;,&#39;06&#39;,&#39;07&#39;,&#39;08&#39;]
+
+high_img_paths = [&#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_01A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_01B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_02A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_02B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_03A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_03B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_04A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_04B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_05A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_05B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_06A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_06B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_07A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_07B_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_08A_ch_0_pow_[0.125]_down.npz&#39;,
+                  &#39;dendritome_data/30x_images/Camk2a-MORF3-D1Tom_TME08-1_30x_Str_08B_ch_0_pow_[0.125]_down.npz&#39;]
+
+outdir = &#39;step3_outputs&#39;
+if not os.path.exists(outdir):
+    os.mkdir(outdir)
+
+atlas_paths = [&#39;dendritome_data/atlases/ara_nissl_50.vtk&#39;,
+               &#39;dendritome_data/atlases/average_template_50.vtk&#39;,
+               &#39;dendritome_data/atlases/UPenn_labels_reoriented_origin.vtk&#39;,
+               &#39;dendritome_data/atlases/atlas_info_KimRef_FPbasedLabel_v2.7.csv&#39;]
+
+e_path = &#39;emlddmm&#39;
+d_path = &#39;donglab_workflows&#39;
+
+cmd_str = f&#39;python3 {script_path} {dataset} {orientation} -neuron_dir {neuron_dir} -low_to_high_dir {low_to_high_dir} -tform {tform} -low_img_paths {low_img_paths[0]} {low_img_paths[1]} {low_img_paths[2]} {low_img_paths[3]} {low_img_paths[4]} {low_img_paths[5]} {low_img_paths[6]} {low_img_paths[7]} -low_img_ids {low_imd_ids[0]} {low_imd_ids[1]} {low_imd_ids[2]} {low_imd_ids[3]} {low_imd_ids[4]} {low_imd_ids[5]} {low_imd_ids[6]} {low_imd_ids[7]} -high_img_paths {high_img_paths[0]} {high_img_paths[1]} {high_img_paths[2]} {high_img_paths[3]} {high_img_paths[4]} {high_img_paths[5]} {high_img_paths[6]} {high_img_paths[7]} {high_img_paths[8]} {high_img_paths[9]} {high_img_paths[10]} {high_img_paths[11]} {high_img_paths[12]} {high_img_paths[13]} {high_img_paths[14]} {high_img_paths[15]} -outdir {outdir} -atlas_paths {atlas_paths[0]} {atlas_paths[1]} {atlas_paths[2]} {atlas_paths[3]} -e_path {e_path} -d_path {d_path}&#39;
+
+toggle_seg = True
+toggle_cp = True
+toggle_low = True
+toggle_high = True
+toggle_neurons = True
+
+if not toggle_seg:
+    cmd_str += &#39; -toggle_seg&#39;
+if not toggle_cp:
+    cmd_str += &#39; -toggle_cp&#39;
+if not toggle_low:
+    cmd_str += &#39; -toggle_low&#39;
+if not toggle_high:
+    cmd_str += &#39; -toggle_high&#39;
+if not toggle_neurons:
+    cmd_str += &#39; -toggle_neurons&#39;
+
+print(&#39;Starting registration of swc data with all of the low res data...&#39;)
+os.system(cmd_str)
+print(&#39;Finished registration of swc data with all of the low res data&#39;)
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Registration Script (Steps 1-3) Example</a><ul>
+<li><a class="reference internal" href="#Clone-necessary-code-repositories-from-GitHub,-install-non-native-Python-libraries,-and-download-example-dataset-+-atlases">Clone necessary code repositories from GitHub, install non-native Python libraries, and download example dataset + atlases</a></li>
+<li><a class="reference internal" href="#Step-1-(Atlas-to-low-resolution)">Step 1 (Atlas to low resolution)</a></li>
+<li><a class="reference internal" href="#Step-2-Example-(High-resolution-to-low-resolution)">Step 2 Example (High resolution to low resolution)</a></li>
+<li><a class="reference internal" href="#Step-3-Example">Step 3 Example</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../slab_alignment.html"
+                          title="previous chapter">Slab Alignment Using a Precomputed Transform</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="slab_alignment_example.html"
+                          title="next chapter">Slab Alignment Example</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/notebooks/registration_script_example.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="slab_alignment_example.html" title="Slab Alignment Example"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../slab_alignment.html" title="Slab Alignment Using a Precomputed Transform"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Registration Script (Steps 1-3) Example</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Andrew Bennecke.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

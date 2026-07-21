@@ -1,0 +1,141 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "id": "c0076047-f03c-447e-865b-180389dbacea",
+   "metadata": {},
+   "source": [
+    "# Slab Alignment Example"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "4755a271-e4a4-4324-aed7-9d5cc904f802",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "0ad92bf7-6728-4871-83e6-42a6c63e9150",
+   "metadata": {},
+   "source": [
+    "### Run this cell to clone 2 custom GitHub repos into your local directory AND to download a set of files which can be used as an input to the registration pipeline "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "97f7fbbb-5003-4bd8-9e7e-571c7e6cc6d8",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "if False:\n",
+    "    os.mkdir(\"registration_docs\")\n",
+    "    os.system(\"git clone https://github.com/twardlab/registration_docs registration_docs\")\n",
+    "    \n",
+    "    os.mkdir(\"emlddmm\")\n",
+    "    os.system(\"git clone https://github.com/twardlab/emlddmm emlddmm\")\n",
+    "        \n",
+    "    # Install necessary non-native Python libraries in order to run the 3 scripts\n",
+    "    os.system(\"pip install argparse numpy matplotlib\")\n",
+    "    os.system(\"pip3 install torch torchvision torchaudio\")\n",
+    "    \n",
+    "    # Download example dataset + atlases from twardlab.com\n",
+    "    data_url = 'https://twardlab.com/data/morf/dendritome_data.zip'\n",
+    "    response = requests.get(data_url, stream=True)\n",
+    "    \n",
+    "    if response.status_code == 200:\n",
+    "        with open('dendritome_data.zip', 'wb') as f:\n",
+    "            for chunk in response.iter_content(1024):\n",
+    "                f.write(chunk)\n",
+    "        print('Zip file downloaded successfully')\n",
+    "    else:\n",
+    "        print('Failed to download zip file. Please check that your network connection is stable.')\n",
+    "    \n",
+    "    # If you do not have unzip installed, you may need to run this line with adminsrator privileges.\n",
+    "    # os.system(\"sudo -S apt install unzip\")\n",
+    "    os.system(\"unzip -d dendritome_data dendritome_data.zip\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "id": "8e59347d-76aa-4961-9875-ad12e6e2c6ee",
+   "metadata": {},
+   "source": [
+    "### This cell shows an example use case of the slab_alignment script"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "960adfb6-fcc6-4f26-ba69-77a70f4895c4",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# Initialize the command string by appending the location of the target script\n",
+    "script_path = os.path.join(os.getcwd(),'slab_alignment.py')\n",
+    "cmd_str = f'python3 {script_path}'\n",
+    "\n",
+    "# Define positional and optional arguments (Check docs for more in-depth descriptions for each of these arguments)\n",
+    "dataset = 'TME08-1'\n",
+    "target_files = [os.path.join(os.getcwd(),f'inputs/Camk2a-MORF3-D1Tom_TME08-1_10x_{i:02d}_ch_0_pow_[0.125]_down.npz') for i in range(1,10) ]\n",
+    "tform_file = '/nafs/dtward/andrew_work/test/dragonfly_work/dragonfly_outputs_weighted/TME08-1/dragonfly_output_vis/transformation_outputs.npz'\n",
+    "atlas_names = ['/ifshome/abenneck/docs_public/reg_docs/dendritome_data/atlases/ara_nissl_50.vtk', '/ifshome/abenneck/docs_public/reg_docs/dendritome_data/atlases/average_template_50.vtk', '/ifshome/abenneck/docs_public/reg_docs/dendritome_data/atlases/annotation_50.vtk']\n",
+    "outdir = '/ifshome/abenneck/docs_public/interface_projects/slab_alignment/outputs'\n",
+    "epath = '/ifshome/abenneck/docs_public/reg_docs/emlddmm'\n",
+    "zm = True\n",
+    "debug = True\n",
+    "\n",
+    "# Construct the command string using the above arguments\n",
+    "cmd_str += f' {dataset}'\n",
+    "\n",
+    "for fname in target_files:\n",
+    "    cmd_str += f' {fname}'\n",
+    "\n",
+    "cmd_str += f' -tform_file {tform_file}'\n",
+    "\n",
+    "cmd_str += ' -atlas_files'\n",
+    "for fname in atlas_names:\n",
+    "    cmd_str += f' {fname}'\n",
+    "\n",
+    "cmd_str += f' -outdir {outdir}'\n",
+    "cmd_str += f' -epath {epath}'\n",
+    "\n",
+    "if !zm:\n",
+    "    cmd_str += ' -zm' # Note that the default is False, so passing this flag sets zm to True within the script\n",
+    "\n",
+    "if debug:\n",
+    "    cmd_str += ' -debug' # Note that the default is False, so passing this flag sets zm to True within the script\n",
+    "\n",
+    "# Print out the example command + then run \n",
+    "print(cmd_str,'\\n')\n",
+    "os.system(cmd_str)"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3 (ipykernel)",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.9.19"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

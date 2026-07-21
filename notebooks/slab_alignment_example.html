@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Slab Alignment Example &#8212; Mouse Brain Atlas Registration 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css?v=279e0f84" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Compute Neuron Regional Probabilities" href="compute_neuron_probabilities.html" />
+    <link rel="prev" title="Registration Script (Steps 1-3) Example" href="registration_script_example.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="compute_neuron_probabilities.html" title="Compute Neuron Regional Probabilities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="registration_script_example.html" title="Registration Script (Steps 1-3) Example"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Slab Alignment Example</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="Slab-Alignment-Example">
+<h1>Slab Alignment Example<a class="headerlink" href="#Slab-Alignment-Example" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import os
+</pre></div>
+</div>
+</div>
+<section id="Run-this-cell-to-clone-2-custom-GitHub-repos-into-your-local-directory-AND-to-download-a-set-of-files-which-can-be-used-as-an-input-to-the-registration-pipeline">
+<h2>Run this cell to clone 2 custom GitHub repos into your local directory AND to download a set of files which can be used as an input to the registration pipeline<a class="headerlink" href="#Run-this-cell-to-clone-2-custom-GitHub-repos-into-your-local-directory-AND-to-download-a-set-of-files-which-can-be-used-as-an-input-to-the-registration-pipeline" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>if False:
+    os.mkdir(&quot;registration_docs&quot;)
+    os.system(&quot;git clone https://github.com/twardlab/registration_docs registration_docs&quot;)
+
+    os.mkdir(&quot;emlddmm&quot;)
+    os.system(&quot;git clone https://github.com/twardlab/emlddmm emlddmm&quot;)
+
+    # Install necessary non-native Python libraries in order to run the 3 scripts
+    os.system(&quot;pip install argparse numpy matplotlib&quot;)
+    os.system(&quot;pip3 install torch torchvision torchaudio&quot;)
+
+    # Download example dataset + atlases from twardlab.com
+    data_url = &#39;https://twardlab.com/data/morf/dendritome_data.zip&#39;
+    response = requests.get(data_url, stream=True)
+
+    if response.status_code == 200:
+        with open(&#39;dendritome_data.zip&#39;, &#39;wb&#39;) as f:
+            for chunk in response.iter_content(1024):
+                f.write(chunk)
+        print(&#39;Zip file downloaded successfully&#39;)
+    else:
+        print(&#39;Failed to download zip file. Please check that your network connection is stable.&#39;)
+
+    # If you do not have unzip installed, you may need to run this line with adminsrator privileges.
+    # os.system(&quot;sudo -S apt install unzip&quot;)
+    os.system(&quot;unzip -d dendritome_data dendritome_data.zip&quot;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="This-cell-shows-an-example-use-case-of-the-slab_alignment-script">
+<h2>This cell shows an example use case of the slab_alignment script<a class="headerlink" href="#This-cell-shows-an-example-use-case-of-the-slab_alignment-script" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Initialize the command string by appending the location of the target script
+script_path = os.path.join(os.getcwd(),&#39;slab_alignment.py&#39;)
+cmd_str = f&#39;python3 {script_path}&#39;
+
+# Define positional and optional arguments (Check docs for more in-depth descriptions for each of these arguments)
+dataset = &#39;TME08-1&#39;
+target_files = [os.path.join(os.getcwd(),f&#39;inputs/Camk2a-MORF3-D1Tom_TME08-1_10x_{i:02d}_ch_0_pow_[0.125]_down.npz&#39;) for i in range(1,10) ]
+tform_file = &#39;/nafs/dtward/andrew_work/test/dragonfly_work/dragonfly_outputs_weighted/TME08-1/dragonfly_output_vis/transformation_outputs.npz&#39;
+atlas_names = [&#39;/ifshome/abenneck/docs_public/reg_docs/dendritome_data/atlases/ara_nissl_50.vtk&#39;, &#39;/ifshome/abenneck/docs_public/reg_docs/dendritome_data/atlases/average_template_50.vtk&#39;, &#39;/ifshome/abenneck/docs_public/reg_docs/dendritome_data/atlases/annotation_50.vtk&#39;]
+outdir = &#39;/ifshome/abenneck/docs_public/interface_projects/slab_alignment/outputs&#39;
+epath = &#39;/ifshome/abenneck/docs_public/reg_docs/emlddmm&#39;
+zm = True
+debug = True
+
+# Construct the command string using the above arguments
+cmd_str += f&#39; {dataset}&#39;
+
+for fname in target_files:
+    cmd_str += f&#39; {fname}&#39;
+
+cmd_str += f&#39; -tform_file {tform_file}&#39;
+
+cmd_str += &#39; -atlas_files&#39;
+for fname in atlas_names:
+    cmd_str += f&#39; {fname}&#39;
+
+cmd_str += f&#39; -outdir {outdir}&#39;
+cmd_str += f&#39; -epath {epath}&#39;
+
+if !zm:
+    cmd_str += &#39; -zm&#39; # Note that the default is False, so passing this flag sets zm to True within the script
+
+if debug:
+    cmd_str += &#39; -debug&#39; # Note that the default is False, so passing this flag sets zm to True within the script
+
+# Print out the example command + then run
+print(cmd_str,&#39;\n&#39;)
+os.system(cmd_str)
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Slab Alignment Example</a><ul>
+<li><a class="reference internal" href="#Run-this-cell-to-clone-2-custom-GitHub-repos-into-your-local-directory-AND-to-download-a-set-of-files-which-can-be-used-as-an-input-to-the-registration-pipeline">Run this cell to clone 2 custom GitHub repos into your local directory AND to download a set of files which can be used as an input to the registration pipeline</a></li>
+<li><a class="reference internal" href="#This-cell-shows-an-example-use-case-of-the-slab_alignment-script">This cell shows an example use case of the slab_alignment script</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="registration_script_example.html"
+                          title="previous chapter">Registration Script (Steps 1-3) Example</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="compute_neuron_probabilities.html"
+                          title="next chapter">Compute Neuron Regional Probabilities</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/notebooks/slab_alignment_example.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="compute_neuron_probabilities.html" title="Compute Neuron Regional Probabilities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="registration_script_example.html" title="Registration Script (Steps 1-3) Example"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Slab Alignment Example</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Andrew Bennecke.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>

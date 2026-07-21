@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Compute Neuron Regional Probabilities &#8212; Mouse Brain Atlas Registration 0.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=8f2a1f02" />
+    <link rel="stylesheet" type="text/css" href="../_static/nature.css?v=279e0f84" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <script src="../_static/documentation_options.js?v=2709fde1"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="Slab Alignment Example" href="slab_alignment_example.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="slab_alignment_example.html" title="Slab Alignment Example"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Compute Neuron Regional Probabilities</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="Compute-Neuron-Regional-Probabilities">
+<h1>Compute Neuron Regional Probabilities<a class="headerlink" href="#Compute-Neuron-Regional-Probabilities" title="Link to this heading">¶</a></h1>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>&quot;&quot;&quot;
+The following notebook was used in the Dendritome MORF project to assign regional probabilities to all of the registered neuron (.swc) files
+under the condition that the neuron lies within a subregion of the Caudateputamen or any adjacent, gray matter anatomical structure.
+&quot;&quot;&quot;
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&#39;\nThe following notebook was used in the Dendritome MORF project to assign regional probabilities to all of the registered neuron (.swc) files \nunder the condition that the neuron lies within a subregion of the Caudateputamen or any adjacent, gray matter anatomical structure.\n&#39;
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import numpy as np
+import matplotlib.pyplot as plt
+# %matplotlib notebook
+%matplotlib widget
+
+import sys
+sys.path.append(&#39;/home/dtward/data/csh_data/emlddmm&#39;)
+sys.path.append(&#39;/home/abenneck/Desktop/emlddmm&#39;)
+import emlddmm
+import csv
+from skimage.measure import marching_cubes
+from glob import glob
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from os.path import split,join,splitext
+
+import pandas as pd
+from scipy.stats import multivariate_normal
+import os
+
+from scipy.ndimage import distance_transform_edt
+import time
+
+sys.path.append(&#39;/home/abenneck&#39;)
+
+saveData = True
+</pre></div>
+</div>
+</div>
+</section>
+<section id="0.-Define-region-IDs-and-file-locations">
+<h1>0. Define region IDs and file locations<a class="headerlink" href="#0.-Define-region-IDs-and-file-locations" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>ontology_name = &#39;/home/abenneck/mounts/bmaproot/nafs/dtward/dong/upenn_atlas/atlas_info_KimRef_FPbasedLabel_v2.7.csv&#39;
+seg_name = &#39;/home/abenneck/mounts/bmaproot/nafs/dtward/dong/upenn_atlas/UPenn_labels_reoriented_origin.vtk&#39;
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># L0 CP regions
+regionID_cp = 672 # Caudate Putamen
+
+# L1 CP regions
+regionID_cpr = 2491     # CP, rostral
+regionID_cpre = 2376    # CP, rostral extreme
+regionID_cpi = 2492     # CP, intermediate
+regionID_cpc = 2496     # CP, caudal
+regionID_cpce = 2495    # CP, caudal extreme
+
+# L2 CP regions
+regionID_cpr_m = 2294   # CPr, medial
+regionID_cpr_imd = 2295 # CPr, intermediate dorsal
+regionID_cpr_imv = 2296 # CPr, intermediate ventral
+regionID_cpr_l = 2497   # CPr, lateral
+regionID_cpi_dm = 2498  # CPi, dorsomedial
+regionID_cpi_vm = 2500  # CPi, ventromedial
+regionID_cpi_dl = 2499  # CPi, dorsolateral
+regionID_cpi_vl = 2501  # CPi, ventrolateral
+regionID_cpc_d = 2493   # CPc, dorsal
+regionID_cpc_i = 2494   # CPc, intermediate
+regionID_cpc_v = 2490   # CPc, ventral
+
+# Non-CP gray matter regions
+regionID_ast = 2050     # Amygdalostriatal nucleus
+regionID_acb = 56       # Accumbens nucleus
+regionID_ipac = 998     # Interstitial nucleus of the posterior limb of the anterior commissure
+regionID_tu = 754       # Olfactory tubercle
+regionID_lsx = 275      # Lateral septal complex
+regionID_samy = 278     # Striatum-like amygdalar nuclei
+regionID_pal = 803      # Pallidum
+regionID_cl = 583       # Claustrum
+regionID_en = 942       # Endopiriform nucleus
+regionID_pir = 961      # Piriform nucleus
+
+# Non-CP regions
+regionID_lv = 81        # Lateral ventricle
+regionID_3V = 129       # 3rd ventricle
+regionID_Aq = 140       # Aqueduct
+regionID_4V = 145       # 4th ventricle
+regionID_centCan = 164  # Central canal
+regionID_cc = 776       # Corpus callosum
+</pre></div>
+</div>
+</div>
+<section id="Load-UPenn-ontology-+-Generate-lists-of-descendents">
+<h2>Load UPenn ontology + Generate lists of descendents<a class="headerlink" href="#Load-UPenn-ontology-+-Generate-lists-of-descendents" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>xS,S,_,_ = emlddmm.read_data(seg_name)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Transforms xS into a set of coordinates
+XS = np.stack(np.meshgrid(*xS,indexing=&#39;ij&#39;),-1)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Center of mass of region 2294 (Definition of the 1st moment of the indicator function for label 2294)
+# np.sum(XS*(S[0,...,None]==2294))/np.sum(S==2294)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>parent_column = 7 # 8 for allen, 7 for yongsoo
+label_column = 0 # 0 for both
+shortname_column = 2# 3 for allen, 2 for yongsoo
+longname_column = 1# 2 for allen, 1 for yongsoo
+ontology = dict()
+with open(ontology_name) as f:
+    csvreader = csv.reader(f, delimiter=&#39;,&#39;, quotechar=&#39;&quot;&#39;)
+    count = 0
+    for row in csvreader:
+        if count == 0:
+            headers = row
+            print(headers)
+        else:
+            if not row[parent_column]:
+                parent = -1
+            else:
+                parent = int(row[parent_column])
+            ontology[int(row[label_column])] = (row[shortname_column],row[longname_column],parent)
+        count += 1
+<br/></pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;\ufeffid&#39;, &#39;name&#39;, &#39;acronym&#39;, &#39;red&#39;, &#39;green&#39;, &#39;blue&#39;, &#39;structure_order&#39;, &#39;parent_id&#39;, &#39;parent_acronym&#39;]
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># we need to find all the descendants of a given label
+# first we&#39;ll get children
+children = dict()
+for o in ontology:
+    parent = ontology[o][-1]
+    if parent not in children:
+        children[parent] = []
+    children[parent].append(o)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># now we go from children to descendents
+descendents = dict(children)
+for o in descendents:
+    for child in descendents[o]:
+        if child in descendents: # if I don&#39;t do this i get a key error 0
+            descendents[o].extend(descendents[child])
+descendents[0] = []
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>descendents_and_self = dict(descendents)
+for o in ontology:
+    if o not in descendents_and_self:
+        descendents_and_self[o] = [o]
+    else:
+        descendents_and_self[o].append(o)
+</pre></div>
+</div>
+</div>
+<section id="Generate-Boolean-masks-for-CP,-CPr-(+CPre),-CPi,-CPc-(+CPce)">
+<h3>Generate Boolean masks for CP, CPr (+CPre), CPi, CPc (+CPce)<a class="headerlink" href="#Generate-Boolean-masks-for-CP,-CPr-(+CPre),-CPi,-CPc-(+CPce)" title="Link to this heading">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># find all the descendents of Caudoputemen- rostral
+# and caudoputemen rostral- extreme
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># these are all the structures in the CP
+cp = list(descendents_and_self[672])
+Scp = np.zeros_like(S)
+for l in cp:
+    Scp = np.logical_or(Scp,S==l)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># these are the structures one level below CP, with extreme&#39;s merged in
+rostral = list(descendents_and_self[2376]) # rostral extreme
+rostral.extend(list(descendents_and_self[2491])) # rostral
+rostral = list(dict.fromkeys(rostral))
+
+intermediate = list(descendents_and_self[2492]) # intermediate
+
+caudal = list(descendents_and_self[2496]) # caudal
+caudal_ = list(descendents_and_self[2495]) # caudal extreme
+caudal.extend(caudal_)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>Srostral = np.zeros_like(S)
+for l in rostral:
+    Srostral = np.logical_or(Srostral, S==l)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>Sintermediate = np.zeros_like(S)
+for l in intermediate:
+    Sintermediate = np.logical_or(Sintermediate, S==l)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>Scaudal = np.zeros_like(S)
+for l in caudal:
+    Scaudal = np.logical_or(Scaudal, S==l)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>atlas_x, atlas_y, atlas_z = xS
+
+fig,ax = plt.subplots()
+ax.plot(np.sum(Srostral&gt;0,axis=(0,2,3)),label=&#39;r&#39;)
+ax.plot(np.sum(Sintermediate&gt;0,axis=(0,2,3)),label=&#39;i&#39;)
+ax.plot(np.sum(Scaudal&gt;0,axis=(0,2,3)),label=&#39;c&#39;)
+# ax.set_xticks(atlas_x, minor=True)
+# ax.minorticks_off()
+ax.legend()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.legend.Legend at 0x789072335ae0&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<script type="application/vnd.jupyter.widget-view+json">{"model_id": "423321cbdd1f4a9c854fc42cfd5c20ea", "version_major": 2, "version_minor": 0}</script></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def generate_region_mask(S, regionID):
+    self_and_children = list(descendents_and_self[regionID])
+    region_mask = np.zeros_like(S)
+    for i in self_and_children:
+        region_mask = np.logical_or(region_mask, S==i)
+    return region_mask
+
+# === Striatum Dorsal Region (STRd) ===
+
+# CP regions (L2)
+Scpr_m   = generate_region_mask(S,2294)
+Scpr_imd = generate_region_mask(S,2295)
+Scpr_imv = generate_region_mask(S,2296)
+Scpr_l   = generate_region_mask(S,2497)
+Scpi_dm  = generate_region_mask(S,2498)
+Scpi_vm  = generate_region_mask(S,2500)
+Scpi_dl  = generate_region_mask(S,2499)
+Scpi_vl  = generate_region_mask(S,2501)
+Scpc_d   = generate_region_mask(S,2493)
+Scpc_i   = generate_region_mask(S,2494)
+Scpc_v   = generate_region_mask(S,2490)
+
+# Non-CP regions
+# S_lss = generate_region_mask(S,2001) # Lateral strip of the striatum (Outdated)
+S_ast = generate_region_mask(S,2050) # Amygdalostriatial transition
+
+# === Striatum Ventral Region (STRv) ===
+S_acb  = generate_region_mask(S,56)  # Accumbens nucleus
+# S_ipac = generate_region_mask(S,998) # Interstitial nucleus of the posterior limb of the anterior commissure
+# S_tu   = generate_region_mask(S,754) # Olfactory tubercle
+
+# === (10/3/23) Striatum adjacent regions ===
+S_lsx = generate_region_mask(S,275)  # Lateral septal complex
+S_samy = generate_region_mask(S,278) # Striatum-like amygdalar nuclei
+S_pal = generate_region_mask(S,803)  # Pallidum
+
+# === (10/4/23) Striatum adjacent regions ===
+S_cl =   generate_region_mask(S,583) # Claustrum
+S_en =   generate_region_mask(S,942) # Endopiriform nucleus
+S_pir =  generate_region_mask(S,961) # Piriform nucleus
+
+# === (11/6/23) Regions for distance computations ===
+S_lv = generate_region_mask(S,regionID_lv)
+S_3V = generate_region_mask(S,regionID_3V)
+S_Aq = generate_region_mask(S,regionID_Aq)
+S_4V = generate_region_mask(S,regionID_4V)
+S_centralCanal = generate_region_mask(S,regionID_centCan)
+
+S_cc = generate_region_mask(S,regionID_cc)
+
+S_cp_and_acb = np.logical_or(Scp, S_acb == 1)   # Create mask for all CP and ACB voxels
+S_not_cp_or_acb = np.zeros_like(S)
+S_not_cp_or_acb[S != 0] = 1                     # Create a copy of S where all nonzero voxels are 1
+S_not_cp_or_acb[S_cp_and_acb == 1] = 0          # Set all voxels witin CP or ACB to 0
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+</section>
+<section id="1.-Probability-Regional-Assignments">
+<h1>1. Probability Regional Assignments<a class="headerlink" href="#1.-Probability-Regional-Assignments" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># so what is a plan going forward
+# I&#39;d like to take every blob as a gaussian
+# the height is its volume
+# the mean is its mean
+# the covariance is its covariance
+# the only trouble here is the left right issue
+# another posiblility is to just blur the labels
+# this may get rid of small structures though
+# but I could give less blur to the small structures
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># first going forward
+# 1. make a figure like this to get a sense of the uncertainty for each brain
+# 2. make a probabilitistic version of the CP structures.
+# I&#39;d like to model each structure as a gaussian blob (ellispoids with soft boundaries)
+# this needs three parameters
+# the mean (a 3 element vector)
+# the covariance (3x3 symmetric matrix)
+# and the height/amplitude of the gaussian (one positive number)
+
+# The height (amplitude) should be the number of voxels in the structure
+# the mean, is going to be the first moment of the segmentation
+# the covariance, is the second central moment of the segmentation.
+</pre></div>
+</div>
+</div>
+<section id="Compute-+-Save-Gaussian-parameters-for-CP">
+<h2>Compute + Save Gaussian parameters for CP<a class="headerlink" href="#Compute-+-Save-Gaussian-parameters-for-CP" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># def generate_gaussian_param(subregion_mask, hemi, fname):
+#     if hemi == &#39;R&#39;:
+#         LR_indicator = (xS[1][:,None]&gt;=0) # Right hemisphere
+#     else:
+#         LR_indicator = (xS[1][:,None]&lt;0)  # Left hemisphere
+
+#     # ===== Compute Gaussian parameters =====
+
+#     # number of voxels in &#39;subregion&#39;
+#     Ncp = np.sum(subregion_mask*LR_indicator)
+
+#     # let&#39;s compute the first moment
+#     mucp = [np.sum(xS[0][:,None,None]*subregion_mask*LR_indicator)/Ncp, np.sum(xS[1][:,None]*subregion_mask*LR_indicator)/Ncp, np.sum(xS[2][:]*subregion_mask*LR_indicator)/Ncp]
+
+#     # now calculate the covariance matrix
+#     covcp01 = np.sum((xS[0][:,None,None] - mucp[0])*(xS[1][:,None] - mucp[1])*subregion_mask*LR_indicator)/Ncp # here row 0 column 1
+#     covcp02 = np.sum((xS[0][:,None,None] - mucp[0])*(xS[2][None,:] - mucp[2])*subregion_mask*LR_indicator)/Ncp # here row 0 column 2
+#     covcp12 = np.sum((xS[1][None,:,None] - mucp[1])*(xS[2][None,:] - mucp[2])*subregion_mask*LR_indicator)/Ncp # here row 1 column 2
+
+#     covcp00 = np.sum(((xS[0][:,None,None] - mucp[0])**2)*subregion_mask*LR_indicator)/Ncp # here row 0 column 0
+#     covcp11 = np.sum(((xS[1][None,:,None] - mucp[1])**2)*subregion_mask*LR_indicator)/Ncp # here row 1 column 1
+#     covcp22 = np.sum(((xS[2][None,None,:] - mucp[2])**2)*subregion_mask*LR_indicator)/Ncp # here row 2 column 2
+
+#     covcp = [[covcp00,covcp01,covcp02],[covcp01,covcp11,covcp12],[covcp02,covcp12,covcp22]]
+
+#     # Save Gaussian parameters in.npz file with keys [height, mu, cov]
+#     save_path = join(&#39;/home/abenneck/dragonfly_work/gaussian_parameters/&#39;,fname)
+#     np.savez(save_path,height=[Ncp],mu=mucp,cov=covcp)
+#     print(f&#39;Saved {fname}\n&#39;)
+
+# genParam = False
+# if genParam:
+#     for hemi in [&#39;L&#39;,&#39;R&#39;]:
+#         generate_gaussian_param(Scp, hemi,f&#39;cp_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Srostral, hemi,f&#39;cpr_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Sintermediate, hemi,f&#39;cpi_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scaudal, hemi,f&#39;cpc_param_{hemi}.npz&#39;)
+
+#         generate_gaussian_param(Scpr_m, hemi,f&#39;cpr_m_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpr_imd, hemi,f&#39;cpr_imd_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpr_imv, hemi,f&#39;cpr_imv_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpr_l, hemi,f&#39;cpr_l_param_{hemi}.npz&#39;)
+
+#         generate_gaussian_param(Scpi_dm, hemi,f&#39;cpi_dm_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpi_vm, hemi,f&#39;cpi_vm_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpi_dl, hemi,f&#39;cpi_dl_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpi_vl, hemi,f&#39;cpi_vl_param_{hemi}.npz&#39;)
+
+#         generate_gaussian_param(Scpc_d, hemi,f&#39;cpc_d_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpc_i, hemi,f&#39;cpc_i_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(Scpc_v, hemi,f&#39;cpc_v_param_{hemi}.npz&#39;)
+
+#         generate_gaussian_param(S_ast, hemi, f&#39;ast_param_{hemi}.npz&#39;)
+
+#         generate_gaussian_param(S_acb, hemi, f&#39;acb_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(S_ipac, hemi, f&#39;ipac_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(S_tu, hemi, f&#39;tu_param_{hemi}.npz&#39;)
+
+#         generate_gaussian_param(S_lsx, hemi, f&#39;lsx_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(S_samy, hemi, f&#39;samy_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(S_pal, hemi, f&#39;pal_param_{hemi}.npz&#39;)
+
+#         generate_gaussian_param(S_cl, hemi,f&#39;cl_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(S_en, hemi,f&#39;en_param_{hemi}.npz&#39;)
+#         generate_gaussian_param(S_pir, hemi,f&#39;pir_param_{hemi}.npz&#39;)
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Compute-distance-transform-for-each-mask">
+<h2>Compute distance transform for each mask<a class="headerlink" href="#Compute-distance-transform-for-each-mask" title="Link to this heading">¶</a></h2>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[24]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def generateDistanceTransform(xS, mask, hemi, fname, save_path):
+    start = time.time()
+    if hemi == &#39;R&#39;:
+        LR_indicator = (xS[1][:,None]&gt;=0) # Right hemisphere
+    elif hemi == &#39;L&#39;:
+        LR_indicator = (xS[1][:,None]&lt;0)  # Left hemisphere
+    else:
+        LR_indicator = 1.0 # Whole brain
+
+    transformedMask = distance_transform_edt(1-mask*LR_indicator)
+
+    # Save distance transform parameters in .npz file with keys [mask]
+    save_path = join(save_path,fname)
+    np.savez(save_path, mask = transformedMask.astype(np.float32))
+    print(f&#39;Saved {fname} after {time.time() - start : .2f} s&#39;)
+
+    return transformedMask
+
+save_path = &#39;/home/abenneck/Desktop/tutorial_TEST_40000/d_masks&#39;
+saveDistanceParam = True
+if saveDistanceParam:
+    for hemi in [&#39;L&#39;,&#39;R&#39;]:
+        generateDistanceTransform(xS, Scp, hemi, f&#39;cp_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Srostral, hemi, f&#39;cpr_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Sintermediate, hemi, f&#39;cpi_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scaudal, hemi, f&#39;cpc_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, Scpr_m, hemi, f&#39;cpr_m_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpr_imd, hemi, f&#39;cpr_imd_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpr_imv, hemi, f&#39;cpr_imv_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpr_l, hemi, f&#39;cpr_l_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, Scpi_dm, hemi, f&#39;cpi_dm_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpi_vm, hemi, f&#39;cpi_vm_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpi_dl, hemi, f&#39;cpi_dl_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpi_vl, hemi, f&#39;cpi_vl_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, Scpc_d, hemi, f&#39;cpc_d_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpc_i, hemi, f&#39;cpc_i_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, Scpc_v, hemi, f&#39;cpc_v_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, S_ast, hemi, f&#39;ast_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, S_acb, hemi, f&#39;acb_dist_param_{hemi}.npz&#39;, save_path)
+        # generateDistanceTransform(xS, S_ipac, hemi, f&#39;ipac_dist_param_{hemi}.npz&#39;, save_path)
+        # generateDistanceTransform(xS, S_tu, hemi, f&#39;tu_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, S_lsx, hemi, f&#39;lsx_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_samy, hemi, f&#39;samy_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_pal, hemi, f&#39;pal_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, S_cl, hemi, f&#39;cl_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_en, hemi, f&#39;en_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_pir, hemi, f&#39;pir_dist_param_{hemi}.npz&#39;, save_path)
+
+        generateDistanceTransform(xS, S_lv, hemi, f&#39;lv_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_3V, hemi, f&#39;3V_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_Aq, hemi, f&#39;Aq_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_4V, hemi, f&#39;4V_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_centralCanal, hemi, f&#39;centralCanal_dist_param_{hemi}.npz&#39;, save_path)
+        generateDistanceTransform(xS, S_cc, hemi, f&#39;cc_dist_param_{hemi}.npz&#39;, save_path)
+
+    generateDistanceTransform(xS, S_cp_and_acb, &#39;w&#39;, f&#39;cp_acb_dist_param.npz&#39;, save_path)
+    generateDistanceTransform(xS, S_not_cp_or_acb, &#39;w&#39;, f&#39;not_cp_acb_dist_param.npz&#39;, save_path)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Saved cp_dist_param_L.npz after  32.25 s
+Saved cpr_dist_param_L.npz after  30.40 s
+Saved cpi_dist_param_L.npz after  31.09 s
+Saved cpc_dist_param_L.npz after  31.35 s
+Saved cpr_m_dist_param_L.npz after  29.21 s
+Saved cpr_imd_dist_param_L.npz after  29.10 s
+Saved cpr_imv_dist_param_L.npz after  27.72 s
+Saved cpr_l_dist_param_L.npz after  29.74 s
+Saved cpi_dm_dist_param_L.npz after  30.07 s
+Saved cpi_vm_dist_param_L.npz after  28.09 s
+Saved cpi_dl_dist_param_L.npz after  29.81 s
+Saved cpi_vl_dist_param_L.npz after  29.10 s
+Saved cpc_d_dist_param_L.npz after  30.24 s
+Saved cpc_i_dist_param_L.npz after  29.28 s
+Saved cpc_v_dist_param_L.npz after  27.20 s
+Saved ast_dist_param_L.npz after  28.20 s
+Saved acb_dist_param_L.npz after  27.71 s
+Saved ipac_dist_param_L.npz after  27.27 s
+Saved tu_dist_param_L.npz after  26.59 s
+Saved lsx_dist_param_L.npz after  31.41 s
+Saved samy_dist_param_L.npz after  27.34 s
+Saved pal_dist_param_L.npz after  32.44 s
+Saved cl_dist_param_L.npz after  27.98 s
+Saved en_dist_param_L.npz after  28.30 s
+Saved pir_dist_param_L.npz after  29.50 s
+Saved lv_dist_param_L.npz after  35.47 s
+Saved 3V_dist_param_L.npz after  35.26 s
+Saved Aq_dist_param_L.npz after  31.34 s
+Saved 4V_dist_param_L.npz after  30.29 s
+Saved centralCanal_dist_param_L.npz after  25.23 s
+Saved cc_dist_param_L.npz after  35.27 s
+Saved cp_dist_param_R.npz after  32.10 s
+Saved cpr_dist_param_R.npz after  30.26 s
+Saved cpi_dist_param_R.npz after  31.41 s
+Saved cpc_dist_param_R.npz after  31.64 s
+Saved cpr_m_dist_param_R.npz after  29.62 s
+Saved cpr_imd_dist_param_R.npz after  29.49 s
+Saved cpr_imv_dist_param_R.npz after  30.83 s
+Saved cpr_l_dist_param_R.npz after  34.21 s
+Saved cpi_dm_dist_param_R.npz after  33.91 s
+Saved cpi_vm_dist_param_R.npz after  32.00 s
+Saved cpi_dl_dist_param_R.npz after  32.23 s
+Saved cpi_vl_dist_param_R.npz after  30.16 s
+Saved cpc_d_dist_param_R.npz after  31.31 s
+Saved cpc_i_dist_param_R.npz after  30.80 s
+Saved cpc_v_dist_param_R.npz after  28.46 s
+Saved ast_dist_param_R.npz after  28.75 s
+Saved acb_dist_param_R.npz after  29.96 s
+Saved ipac_dist_param_R.npz after  29.15 s
+Saved tu_dist_param_R.npz after  28.36 s
+Saved lsx_dist_param_R.npz after  34.15 s
+Saved samy_dist_param_R.npz after  28.14 s
+Saved pal_dist_param_R.npz after  35.58 s
+Saved cl_dist_param_R.npz after  32.20 s
+Saved en_dist_param_R.npz after  32.23 s
+Saved pir_dist_param_R.npz after  32.99 s
+Saved lv_dist_param_R.npz after  33.57 s
+Saved 3V_dist_param_R.npz after  35.11 s
+Saved Aq_dist_param_R.npz after  32.42 s
+Saved 4V_dist_param_R.npz after  30.79 s
+Saved centralCanal_dist_param_R.npz after  26.68 s
+Saved cc_dist_param_R.npz after  36.17 s
+Saved cp_acb_dist_param.npz after  35.92 s
+Saved not_cp_acb_dist_param.npz after  43.23 s
+</pre></div></div>
+</div>
+</section>
+<section id="Preprocessing-helper-functions">
+<h2>Preprocessing helper functions<a class="headerlink" href="#Preprocessing-helper-functions" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[25]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Filter which returns true for all distance transforms for L1 CP structures
+def L1_filter_dist(fileName):
+    if len(fileName) &lt;= 21 and fileName != &#39;.ipynb_checkpoints&#39; and &#39;cp&#39; in fileName and wm_vent_filter(fileName) and multi_filter(fileName):
+        return True
+    else:
+        return False
+
+# Filter which returns true for all distance transforms for L2 CP structures
+def L2_filter_dist(fileName):
+    if len(fileName) &gt; 21 and fileName != &#39;.ipynb_checkpoints&#39; and &#39;cp&#39; in fileName and wm_vent_filter(fileName) and multi_filter(fileName):
+        return True
+    else:
+        return False
+
+# Filter which returns true for all distance transforms for all non-CP gray matter structures
+def non_CP_filter_dist(fileName):
+    if not L2_filter_dist(fileName) and not L1_filter_dist(fileName) and fileName != &#39;.ipynb_checkpoints&#39; and wm_vent_filter(fileName) and multi_filter(fileName):
+        return True
+    else:
+        return False
+
+# Filter which returns true for all distance transforms that are NOT white matter or ventricle structures
+def wm_vent_filter(fileName):
+    fnames_to_ignore = [&#39;lv_dist_param_L.npz&#39;,&#39;ivf_dist_param_L.npz&#39;, &#39;3V_dist_param_L.npz&#39;, &#39;Aq_dist_param_L.npz&#39;, &#39;4V_dist_param_L.npz&#39;, &#39;centralCanal_dist_param_L.npz&#39;, &#39;cc_dist_param_L.npz&#39;, &#39;lv_dist_param_R.npz&#39;, &#39;ivf_dist_param_R.npz&#39;, &#39;3V_dist_param_R.npz&#39;, &#39;Aq_dist_param_R.npz&#39;, &#39;4V_dist_param_R.npz&#39;, &#39;centralCanal_dist_param_R.npz&#39;, &#39;cc_dist_param_R.npz&#39;]
+    for fname in fnames_to_ignore:
+        if fname == fileName:
+            return False
+    return True
+
+# Filter to skip cp_acb and not_cp_acb
+def multi_filter(fileName):
+    fnames_to_ignore = [&#39;cp_acb_dist_param.npz&#39;,&#39;not_cp_acb_dist_param.npz&#39;]
+    for fname in fnames_to_ignore:
+        if fname == fileName:
+            return False
+    return True
+
+
+# Returns list of (x,y,z) coordinates for &#39;region_id&#39; and any child subregions
+def get_coord_list(region_id, XS, S):
+    self_and_children = list(descendents_and_self[region_id])
+    allCoords = list()
+    for idNum in self_and_children:
+        regionCoords = XS[S[0]==idNum]
+        if len(regionCoords) != 0:
+            for coord in regionCoords:
+                allCoords.append(coord)
+    return allCoords
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Probability-computation-helper-functions">
+<h2>Probability computation helper functions<a class="headerlink" href="#Probability-computation-helper-functions" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[26]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Computes minimum Euclidean distance between &#39;soma_location&#39; ([x, y, z]) and &#39;regionCoords&#39; (n * [x, y, z])
+def dist_from_region(regionCoords, soma_location):
+    # out = allCoords-soma_location =&gt; [allCoords[0]-soma_location, allCoords[1]-soma_location, ...]
+    # out = (out)**2                =&gt; Square all terms within out
+    # out = np.sum(out, axis=1)     =&gt; [out[0][0]+out[0][1]+out[0][2], out[1][0]+out[1][1]+out[1][2], ...]
+    # out = np.sqrt(out)            =&gt; sqrt all terms within out
+    # out = np.min(out)             =&gt; min of all distances
+    return np.min(np.sqrt(np.sum((regionCoords-soma_location)**2, axis=1)))
+
+# Round neuron coord to nearest atlas coord
+def roundCoord(sub_xS, coord, type = &#39;20um&#39;):
+    if coord &lt; np.min(sub_xS):
+        coord = np.min(sub_xS)
+    elif coord &gt; np.max(sub_xS):
+        coord = np.max(sub_xS)
+    elif type == &#39;50um&#39;:
+        coord_rounded = 50*round(coord/50) # Round coordinate to nearest 50
+        if coord &lt; 0:
+            if coord - coord_rounded &gt;= 0:
+                coord = coord_rounded + 25
+            else:
+                coord = coord_rounded - 25
+        else:
+            if coord - coord_rounded &gt;= 0:
+                coord = coord_rounded + 25
+            else:
+                coord = coord_rounded - 25
+    else:
+        coord_rounded = 20*round(coord/20) # Round coordinate to nearest 20
+        if coord &lt; 0:
+            if coord - coord_rounded &gt;= 0:
+                coord = coord_rounded + 10
+            else:
+                coord = coord_rounded - 10
+        else:
+            if coord - coord_rounded &gt;= 0:
+                coord = coord_rounded + 10
+            else:
+                coord = coord_rounded - 10
+    return coord
+
+# HELPER FUNCTION: Appends all nonCP regions used for conditional probabilites
+def append_nonCP_regions(allProb):
+    nonCP_regions = [&#39;ACB&#39;,&#39;AST&#39;,&#39;CL&#39;,&#39;EN&#39;,&#39;LSX&#39;,&#39;PAL&#39;,&#39;PIR&#39;,&#39;SAMY&#39;]
+    for l in range(3):
+        if l == 0:
+            last_CP_col = &#39;CP_R&#39;
+        elif l == 1:
+            last_CP_col = &#39;CPr_R&#39;
+        else: # l == 2
+            last_CP_col = &#39;CPr_m_R&#39;
+
+        for i,region in enumerate(nonCP_regions):
+            if i == 0:
+                prevCol = last_CP_col
+            else:
+                prevCol = f&#39;{nonCP_regions[i-1]}{l}_R&#39;
+
+            allProb.insert(allProb.columns.get_loc(prevCol)+1,f&#39;{region}{l}_L&#39;,allProb[f&#39;{region}_L&#39;])
+            allProb.insert(allProb.columns.get_loc(f&#39;{region}{l}_L&#39;)+1,f&#39;{region}{l}_R&#39;,allProb[f&#39;{region}_R&#39;])
+    return allProb
+
+# Absolute probabilities =&gt; (Normalize probabilities at multiple levels) =&gt; Conditional probabilities
+def normalize_prob(allProb):
+    L0_labels = [&#39;CP_L&#39;,&#39;CP_R&#39;,&#39;ACB0_L&#39;,&#39;ACB0_R&#39;,&#39;AST0_L&#39;,&#39;AST0_R&#39;,&#39;CL0_L&#39;,&#39;CL0_R&#39;,&#39;EN0_L&#39;,&#39;EN0_R&#39;,&#39;LSX0_L&#39;,&#39;LSX0_R&#39;,&#39;PAL0_L&#39;,&#39;PAL0_R&#39;,&#39;PIR0_L&#39;,&#39;PIR0_R&#39;,&#39;SAMY0_L&#39;,&#39;SAMY0_R&#39;]
+    allProb[L0_labels] = allProb[L0_labels].div(np.sum(allProb[L0_labels], axis=1), axis=0)
+
+    L1_labels = [&#39;CPc_L&#39;,&#39;CPc_R&#39;,&#39;CPi_L&#39;,&#39;CPi_R&#39;,&#39;CPr_L&#39;,&#39;CPr_R&#39;,&#39;ACB1_L&#39;,&#39;ACB1_R&#39;,&#39;AST1_L&#39;,&#39;AST1_R&#39;,&#39;CL1_L&#39;,&#39;CL1_R&#39;,&#39;EN1_L&#39;,&#39;EN1_R&#39;,&#39;LSX1_L&#39;,&#39;LSX1_R&#39;,&#39;PAL1_L&#39;,&#39;PAL1_R&#39;,&#39;PIR1_L&#39;,&#39;PIR1_R&#39;,&#39;SAMY1_L&#39;,&#39;SAMY1_R&#39;]
+    allProb[L1_labels] = allProb[L1_labels].div(np.sum(allProb[L1_labels], axis=1), axis=0)
+
+    L2_labels = [&#39;CPc_d_L&#39;,&#39;CPc_d_R&#39;,&#39;CPc_i_L&#39;,&#39;CPc_i_R&#39;,&#39;CPc_v_L&#39;,&#39;CPc_v_R&#39;,&#39;CPi_dl_L&#39;,&#39;CPi_dl_R&#39;,&#39;CPi_dm_L&#39;,&#39;CPi_dm_R&#39;,&#39;CPi_vl_L&#39;,&#39;CPi_vl_R&#39;,&#39;CPi_vm_L&#39;,&#39;CPi_vm_R&#39;,&#39;CPr_imd_L&#39;,&#39;CPr_imd_R&#39;,&#39;CPr_imv_L&#39;,&#39;CPr_imv_R&#39;,&#39;CPr_l_L&#39;,&#39;CPr_l_R&#39;,&#39;CPr_m_L&#39;,&#39;CPr_m_R&#39;,&#39;ACB2_L&#39;,&#39;ACB2_R&#39;,&#39;AST2_L&#39;,&#39;AST2_R&#39;,&#39;CL2_L&#39;,&#39;CL2_R&#39;,&#39;EN2_L&#39;,&#39;EN2_R&#39;,&#39;LSX2_L&#39;,&#39;LSX2_R&#39;,&#39;PAL2_L&#39;,&#39;PAL2_R&#39;,&#39;PIR2_L&#39;,&#39;PIR2_R&#39;,&#39;SAMY2_L&#39;,&#39;SAMY2_R&#39;]
+    allProb[L2_labels] = allProb[L2_labels].div(np.sum(allProb[L2_labels], axis=1), axis=0)
+
+    nonCP_labels = [&#39;ACB_L&#39;,&#39;ACB_R&#39;,&#39;AST_L&#39;,&#39;AST_R&#39;,&#39;CL_L&#39;,&#39;CL_R&#39;,&#39;EN_L&#39;,&#39;EN_R&#39;,&#39;LSX_L&#39;,&#39;LSX_R&#39;,&#39;PAL_L&#39;,&#39;PAL_R&#39;,&#39;PIR_L&#39;,&#39;PIR_R&#39;,&#39;SAMY_L&#39;,&#39;SAMY_R&#39;]
+    allProb[nonCP_labels] = allProb[nonCP_labels].div(np.sum(allProb[nonCP_labels], axis=1), axis=0)
+
+    multi_labels = [&#39;CP_ACB&#39;, &#39;not_CP_ACB&#39;]
+    allProb[multi_labels] = allProb[multi_labels].div(np.sum(allProb[multi_labels], axis=1), axis=0)
+
+    return allProb
+
+# Convert distance transforms into probability distributions
+def dist_transform_to_prob_dist(dist, scale_factor = 10):
+    transformedMask = np.exp(-dist/scale_factor)
+    transformedMask = transformedMask / np.sum(transformedMask)
+    return transformedMask
+</pre></div>
+</div>
+</div>
+</section>
+<section id="Postprocessing-helper-functions">
+<h2>Postprocessing helper functions<a class="headerlink" href="#Postprocessing-helper-functions" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[27]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Filter to remove the .ipynb_checkpoints file from lists
+def brain_filter(dirName):
+    if dirName == &#39;.ipynb_checkpoints&#39; or dirName == &#39;TME20-1&#39;:
+        return False
+    else:
+        return True
+
+# Return a pd.DataFrame (1 x len (df)) of the column name in df containing the corresponding value in vals for each row of df
+def xlookup(vals, df, cName = &#39;&#39;):
+    out = list()
+    for row in df.iterrows():
+        idx, row = row
+        val = vals[idx]
+        colName = row[row == val].keys()[0]
+        out.append(colName)
+    return pd.DataFrame(data=out, columns = [cName])
+
+# Return a pd.Series (1 x len(df)) of the nth largest value in each row of df
+def nmax(df, n):
+    out = list()
+    for row in df.iterrows():
+        idx, row = row
+        nth_largest = sorted(row, reverse=True)[n-1]
+        out.append(nth_largest)
+    return pd.Series(data=out)
+
+# Appends columns containing the top 3 most probable regions + the associated probabilities to the data df
+def compute_top_n_maximums(data, all_labels, n=3):
+
+    for i, labels in enumerate(all_labels):
+        L0_df = data[labels]
+
+        L0_P1 = L0_df.max(axis=1)
+        L0_1 = xlookup(L0_P1, L0_df)
+
+        if i == 0:
+            leftmost_col_name = &#39;fname&#39;
+        else:
+            leftmost_col_name = f&#39;P(L{i-1},3)&#39;
+
+        data.insert(data.columns.get_loc(leftmost_col_name)+1,f&#39;L{i} (1)&#39;,L0_1)
+        data.insert(data.columns.get_loc(f&#39;L{i} (1)&#39;)+1,f&#39;P(L{i},1)&#39;,L0_P1)
+
+        L0_P2 = nmax(L0_df, 2)
+        L0_2 = xlookup(L0_P2, L0_df)
+        data.insert(data.columns.get_loc(f&#39;P(L{i},1)&#39;)+1,f&#39;L{i} (2)&#39;,L0_2)
+        data.insert(data.columns.get_loc(f&#39;L{i} (2)&#39;)+1,f&#39;P(L{i},2)&#39;,L0_P2)
+
+        L0_P3 = nmax(L0_df,3)
+        L0_3 = xlookup(L0_P3, L0_df)
+        data.insert(data.columns.get_loc(f&#39;P(L{i},2)&#39;)+1,f&#39;L{i} (3)&#39;,L0_3)
+        data.insert(data.columns.get_loc(f&#39;L{i} (3)&#39;)+1,f&#39;P(L{i},3)&#39;,L0_P3)
+
+    return data
+</pre></div>
+</div>
+</div>
+<section id="Generate-probability-distributions,-assign-labels-to-neurons,-and-save-csv-files-locally">
+<h3>Generate probability distributions, assign labels to neurons, and save csv files locally<a class="headerlink" href="#Generate-probability-distributions,-assign-labels-to-neurons,-and-save-csv-files-locally" title="Link to this heading">¶</a></h3>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[65]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>brains = [&#39;TME08-1&#39;]
+
+# Create list of all coordinates within the CP
+allRegionCoords = get_coord_list(672, XS, S) # 672 is regionID for CP
+allRegionCoords = np.asarray(allRegionCoords)
+
+print(&#39;Loading distance transform distributions&#39;)
+start = time.time()
+
+# Create list of distributions from presaved distance transforms
+paramDir = &#39;/home/abenneck/Desktop/tutorial_TEST_40000/d_masks&#39;
+L1_files = sorted(filter(L1_filter_dist,os.listdir(paramDir)))
+L2_files = sorted(filter(L2_filter_dist,os.listdir(paramDir)))
+nonCP_files = sorted(filter(non_CP_filter_dist,os.listdir(paramDir)))
+multi_files = [&#39;cp_acb_dist_param.npz&#39;,&#39;not_cp_acb_dist_param.npz&#39;]
+
+scale_factor = 5
+allTransforms = list()
+for fileList in [L1_files, L2_files, nonCP_files, multi_files]:
+    for file in fileList:
+        data = np.load(os.path.join(paramDir,file))
+        distTrans = data[&#39;mask&#39;]
+        probDist = dist_transform_to_prob_dist(distTrans, scale_factor = scale_factor)
+        allTransforms.append(probDist)
+        print(file)
+print(f&#39;Finished loading distributions in {time.time() - start} s\n&#39;)
+
+# Generate probabilities
+uniform_prior = 1/100
+print(&#39;Generating probabilities&#39;)
+start = time.time()
+for brain in brains:
+    # Define relevant directories
+    neuronDir = &#39;/home/abenneck/Desktop/tutorial_TEST_7500/step3_outputs&#39;
+
+    # Note: The ACB#_x columns are inserted after computing absolute probabilities, but before normalization
+    L0_col = [&#39;mouse ID&#39;, &#39;slice&#39;, &#39;hemi&#39;, &#39;neuron ID&#39;,&#39;fname&#39;,&#39;CP_L&#39;,&#39;CP_R&#39;]
+    L1_col = [&#39;CPc_L&#39;,&#39;CPc_R&#39;,&#39;CPi_L&#39;,&#39;CPi_R&#39;,&#39;CPr_L&#39;,&#39;CPr_R&#39;,]
+    L2_col = [&#39;CPc_d_L&#39;,&#39;CPc_d_R&#39;,&#39;CPc_i_L&#39;,&#39;CPc_i_R&#39;,&#39;CPc_v_L&#39;,&#39;CPc_v_R&#39;,&#39;CPi_dl_L&#39;,&#39;CPi_dl_R&#39;,&#39;CPi_dm_L&#39;,&#39;CPi_dm_R&#39;,&#39;CPi_vl_L&#39;,&#39;CPi_vl_R&#39;,&#39;CPi_vm_L&#39;,&#39;CPi_vm_R&#39;,&#39;CPr_imd_L&#39;,&#39;CPr_imd_R&#39;,&#39;CPr_imv_L&#39;,&#39;CPr_imv_R&#39;,&#39;CPr_l_L&#39;,&#39;CPr_l_R&#39;,&#39;CPr_m_L&#39;,&#39;CPr_m_R&#39;]
+    nonCP_col = [&#39;ACB_L&#39;,&#39;ACB_R&#39;,&#39;AST_L&#39;,&#39;AST_R&#39;,&#39;CL_L&#39;,&#39;CL_R&#39;,&#39;EN_L&#39;,&#39;EN_R&#39;,&#39;LSX_L&#39;,&#39;LSX_R&#39;,&#39;PAL_L&#39;,&#39;PAL_R&#39;,&#39;PIR_L&#39;,&#39;PIR_R&#39;,&#39;SAMY_L&#39;,&#39;SAMY_R&#39;]
+    multi_col = [&#39;CP_ACB&#39;, &#39;not_CP_ACB&#39;]
+    allCol = np.concatenate([L0_col, L1_col, L2_col, nonCP_col, multi_col])
+    allProb = pd.DataFrame(columns=allCol)
+
+    # Generate regional probabilities for every neuron in neuronDir
+    row_idx = 0
+    for i, file in enumerate(sorted(os.listdir(neuronDir))):
+        if &quot;mapped.swc&quot; in file and &#39;checkpoint&#39; not in file:
+            # Load soma coordinates
+            data = pd.read_csv(os.path.join(neuronDir,file))
+            x = float(data.columns[2])
+            y = float(data.columns[3])
+            z = float(data.columns[4])
+            soma_location = [x,y,z]
+
+            # Get idx for soma location in xS
+            x_ind = np.where(xS[0] == roundCoord(xS[0], x))[0].item()
+            y_ind = np.where(xS[1] == roundCoord(xS[1], y))[0].item()
+            z_ind = np.where(xS[2] == roundCoord(xS[2], z))[0].item()
+
+            # Get metadata from filename
+            mouseID = file.split(&#39;_&#39;)[1]
+            sliceID = file.split(&#39;_&#39;)[4][:-1]
+            hemiID = file.split(&#39;_&#39;)[4][-1]
+            neuronID = int(file.split(&#39;_&#39;)[0])
+
+            # Compute probabilities from distance transform probabilities
+            neuronProb = [mouseID, sliceID, hemiID, neuronID, file]
+            for transform in allTransforms:
+                neuronProb.append(uniform_prior*transform[0, x_ind, y_ind, z_ind])
+
+            # print()
+            # print(allProb)
+            # print(neuronProb)
+            allProb.loc[row_idx] = neuronProb
+            row_idx+=1
+
+    # Insert Non-CP regions at each level
+    allProb = append_nonCP_regions(allProb)
+
+    # Normalize probabilities at each level
+    allProb = normalize_prob(allProb)
+
+    # Identify top 3 regions for each neuron and insert columns into allProb
+    L0_labels = [&#39;CP_L&#39;,&#39;CP_R&#39;,&#39;ACB0_L&#39;,&#39;ACB0_R&#39;,&#39;AST0_L&#39;,&#39;AST0_R&#39;,&#39;CL0_L&#39;,&#39;CL0_R&#39;,&#39;EN0_L&#39;,&#39;EN0_R&#39;,&#39;LSX0_L&#39;,&#39;LSX0_R&#39;,&#39;PAL0_L&#39;,&#39;PAL0_R&#39;,&#39;PIR0_L&#39;,&#39;PIR0_R&#39;,&#39;SAMY0_L&#39;,&#39;SAMY0_R&#39;]
+    L1_labels = [&#39;CPc_L&#39;,&#39;CPc_R&#39;,&#39;CPi_L&#39;,&#39;CPi_R&#39;,&#39;CPr_L&#39;,&#39;CPr_R&#39;,&#39;ACB1_L&#39;,&#39;ACB1_R&#39;,&#39;AST1_L&#39;,&#39;AST1_R&#39;,&#39;CL1_L&#39;,&#39;CL1_R&#39;,&#39;EN1_L&#39;,&#39;EN1_R&#39;,&#39;LSX1_L&#39;,&#39;LSX1_R&#39;,&#39;PAL1_L&#39;,&#39;PAL1_R&#39;,&#39;PIR1_L&#39;,&#39;PIR1_R&#39;,&#39;SAMY1_L&#39;,&#39;SAMY1_R&#39;]
+    L2_labels = [&#39;CPc_d_L&#39;,&#39;CPc_d_R&#39;,&#39;CPc_i_L&#39;,&#39;CPc_i_R&#39;,&#39;CPc_v_L&#39;,&#39;CPc_v_R&#39;,&#39;CPi_dl_L&#39;,&#39;CPi_dl_R&#39;,&#39;CPi_dm_L&#39;,&#39;CPi_dm_R&#39;,&#39;CPi_vl_L&#39;,&#39;CPi_vl_R&#39;,&#39;CPi_vm_L&#39;,&#39;CPi_vm_R&#39;,&#39;CPr_imd_L&#39;,&#39;CPr_imd_R&#39;,&#39;CPr_imv_L&#39;,&#39;CPr_imv_R&#39;,&#39;CPr_l_L&#39;,&#39;CPr_l_R&#39;,&#39;CPr_m_L&#39;,&#39;CPr_m_R&#39;,&#39;ACB2_L&#39;,&#39;ACB2_R&#39;,&#39;AST2_L&#39;,&#39;AST2_R&#39;,&#39;CL2_L&#39;,&#39;CL2_R&#39;,&#39;EN2_L&#39;,&#39;EN2_R&#39;,&#39;LSX2_L&#39;,&#39;LSX2_R&#39;,&#39;PAL2_L&#39;,&#39;PAL2_R&#39;,&#39;PIR2_L&#39;,&#39;PIR2_R&#39;,&#39;SAMY2_L&#39;,&#39;SAMY2_R&#39;]
+    multi_labels = [&#39;CP_ACB&#39;, &#39;not_CP_ACB&#39;] # No normalization, so omit from all_labels
+    all_labels = [L0_labels, L1_labels, L2_labels]
+
+    # Appends columns containing top 3 regions (+ associated probability) with highest probability at L0, L1, and L2 for each neuron
+    allProb = compute_top_n_maximums(allProb, all_labels)
+
+    # Save probability distributions as one .csv file in tempDir
+    tempDir = f&#39;/home/abenneck/Desktop/tutorial_TEST_40000/{brain}_neuron_region_prob_sf{scale_factor}_7500.csv&#39;
+    if saveData:
+        allProb.to_csv(tempDir, index=False)
+
+    print(f&#39;Finished registering all neurons in {brain} in {time.time() - start:.2f} s with an average of {(time.time() - start) / len(allProb):.2f} s / neuron\n&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Loading distance transform distributions
+cp_dist_param_L.npz
+cp_dist_param_R.npz
+cpc_dist_param_L.npz
+cpc_dist_param_R.npz
+cpi_dist_param_L.npz
+cpi_dist_param_R.npz
+cpr_dist_param_L.npz
+cpr_dist_param_R.npz
+cpc_d_dist_param_L.npz
+cpc_d_dist_param_R.npz
+cpc_i_dist_param_L.npz
+cpc_i_dist_param_R.npz
+cpc_v_dist_param_L.npz
+cpc_v_dist_param_R.npz
+cpi_dl_dist_param_L.npz
+cpi_dl_dist_param_R.npz
+cpi_dm_dist_param_L.npz
+cpi_dm_dist_param_R.npz
+cpi_vl_dist_param_L.npz
+cpi_vl_dist_param_R.npz
+cpi_vm_dist_param_L.npz
+cpi_vm_dist_param_R.npz
+cpr_imd_dist_param_L.npz
+cpr_imd_dist_param_R.npz
+cpr_imv_dist_param_L.npz
+cpr_imv_dist_param_R.npz
+cpr_l_dist_param_L.npz
+cpr_l_dist_param_R.npz
+cpr_m_dist_param_L.npz
+cpr_m_dist_param_R.npz
+acb_dist_param_L.npz
+acb_dist_param_R.npz
+ast_dist_param_L.npz
+ast_dist_param_R.npz
+cl_dist_param_L.npz
+cl_dist_param_R.npz
+en_dist_param_L.npz
+en_dist_param_R.npz
+lsx_dist_param_L.npz
+lsx_dist_param_R.npz
+pal_dist_param_L.npz
+pal_dist_param_R.npz
+pir_dist_param_L.npz
+pir_dist_param_R.npz
+samy_dist_param_L.npz
+samy_dist_param_R.npz
+cp_acb_dist_param.npz
+not_cp_acb_dist_param.npz
+Finished loading distributions in 52.6440851688385 s
+
+Generating probabilities
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area stderr docutils container">
+<div class="highlight"><pre>
+/tmp/ipykernel_2087/164679973.py:60: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  allProb.insert(allProb.columns.get_loc(f&#39;{region}{l}_L&#39;)+1,f&#39;{region}{l}_R&#39;,allProb[f&#39;{region}_R&#39;])
+/tmp/ipykernel_2087/1276475511.py:41: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(leftmost_col_name)+1,f&#39;L{i} (1)&#39;,L0_1)
+/tmp/ipykernel_2087/1276475511.py:42: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (1)&#39;)+1,f&#39;P(L{i},1)&#39;,L0_P1)
+/tmp/ipykernel_2087/1276475511.py:46: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;P(L{i},1)&#39;)+1,f&#39;L{i} (2)&#39;,L0_2)
+/tmp/ipykernel_2087/1276475511.py:47: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (2)&#39;)+1,f&#39;P(L{i},2)&#39;,L0_P2)
+/tmp/ipykernel_2087/1276475511.py:51: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;P(L{i},2)&#39;)+1,f&#39;L{i} (3)&#39;,L0_3)
+/tmp/ipykernel_2087/1276475511.py:52: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (3)&#39;)+1,f&#39;P(L{i},3)&#39;,L0_P3)
+/tmp/ipykernel_2087/1276475511.py:41: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(leftmost_col_name)+1,f&#39;L{i} (1)&#39;,L0_1)
+/tmp/ipykernel_2087/1276475511.py:42: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (1)&#39;)+1,f&#39;P(L{i},1)&#39;,L0_P1)
+/tmp/ipykernel_2087/1276475511.py:46: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;P(L{i},1)&#39;)+1,f&#39;L{i} (2)&#39;,L0_2)
+/tmp/ipykernel_2087/1276475511.py:47: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (2)&#39;)+1,f&#39;P(L{i},2)&#39;,L0_P2)
+/tmp/ipykernel_2087/1276475511.py:51: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;P(L{i},2)&#39;)+1,f&#39;L{i} (3)&#39;,L0_3)
+/tmp/ipykernel_2087/1276475511.py:52: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (3)&#39;)+1,f&#39;P(L{i},3)&#39;,L0_P3)
+/tmp/ipykernel_2087/1276475511.py:41: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(leftmost_col_name)+1,f&#39;L{i} (1)&#39;,L0_1)
+/tmp/ipykernel_2087/1276475511.py:42: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (1)&#39;)+1,f&#39;P(L{i},1)&#39;,L0_P1)
+/tmp/ipykernel_2087/1276475511.py:46: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;P(L{i},1)&#39;)+1,f&#39;L{i} (2)&#39;,L0_2)
+/tmp/ipykernel_2087/1276475511.py:47: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (2)&#39;)+1,f&#39;P(L{i},2)&#39;,L0_P2)
+/tmp/ipykernel_2087/1276475511.py:51: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;P(L{i},2)&#39;)+1,f&#39;L{i} (3)&#39;,L0_3)
+/tmp/ipykernel_2087/1276475511.py:52: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  data.insert(data.columns.get_loc(f&#39;L{i} (3)&#39;)+1,f&#39;P(L{i},3)&#39;,L0_P3)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Finished registering all neurons in TME08-1 in 0.94 s with an average of 0.00 s / neuron
+
+</pre></div></div>
+</div>
+</section>
+</section>
+</section>
+<section id="2.-Merge-csv-files-with-(position,-probability,-morphometric-features)-data">
+<h1>2. Merge csv files with (position, probability, morphometric features) data<a class="headerlink" href="#2.-Merge-csv-files-with-(position,-probability,-morphometric-features)-data" title="Link to this heading">¶</a></h1>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>scale_factor = 5
+brains = [&#39;TME07-1&#39;, &#39;TME08-1&#39;, &#39;TME09-1&#39;, &#39;TME10-1&#39;, &#39;TME10-3&#39;, &#39;hTME15-1&#39;, &#39;hTME15-2&#39;, &#39;hTME18-1&#39;, &#39;hTME19-2&#39;]
+brains = [&#39;hTME16-1&#39;, &#39;hTME20-1&#39;, &#39;hTME24-2&#39;]
+
+all_df = list()
+for brain in brains:
+    if &#39;hTME16-1&#39; in brains:
+        fname = f&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_new_hTME/post_processing/{brain}_neuron_region_prob_sf{scale_factor}.csv&#39;
+    else:
+        fname = f&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing/{brain}_neuron_region_prob_sf{scale_factor}.csv&#39;
+    # fname = f&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing_50/{brain}_neuron_region_prob_sf{scale_factor}.csv&#39;
+    # fname = f&#39;/home/abenneck/dragonfly_work/prob_dist_out/{brain}_neuron_region_prob_sf{scale_factor}.csv&#39;
+    data = pd.read_csv(fname)
+    all_df.append(data)
+
+main_data = pd.concat(all_df)
+if saveData:
+    if &#39;hTME16-1&#39; in brains:
+        main_data.to_csv(f&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_new_hTME/post_processing/all_prob_new_hTME.csv&#39;, index = False)
+    else:
+        main_data.to_csv(f&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing/neuron_region_prob_sf{scale_factor}_final.csv&#39;, index = False)
+np.unique(main_data[&#39;mouse ID&#39;])
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def get_soma_from_fname(fname, brain):
+    &#39;&#39;&#39;
+    load an swc file =&gt; soma location derived from fname
+
+    Parameters
+    ----------
+    fname : str
+        A string pointing to the file to load
+    skip : int
+        Number of lines to skip at the beginning. (default 0)
+
+    Returns
+    -------
+    xyzoff : Array of ints
+        the x, y, z offsets between fname and first line
+
+    &#39;&#39;&#39;
+    if &#39;hTME&#39; in brain or brain in [&#39;Hpca5-2&#39;, &#39;Sp9-3-2&#39;, &#39;Trank1-2-3&#39;, &#39;Zswim4-1&#39;, &#39;MQC06-2&#39;, &#39;MQC09-3&#39;, &#39;MQC18-3&#39;, &#39;MQC82-2&#39;]:
+        if &#39;Unmapped&#39; in fname: # neuron_dir is a global variable defined in one of the first cells
+            print(fname)
+            _, fx, fy, fz = ((fname.split(&#39;/&#39;))[-1].split(&#39;_&#39;)[-1]).split(&#39;-&#39;)
+            fz = fz[:-4]
+        else:
+            print(fname)
+            _, fx, fy, fz = fname.split(&#39;_&#39;)[3].split(&#39;-&#39;)
+
+        fx, fy, fz = float(fx), float(fy), float(fz)
+    elif brain == &#39;TME10-3&#39;:
+        fx, fy, fz = fname.split(&#39;_&#39;)[5:-1]
+        fx, fy, fz = fx[1:], fy[1:], fz[1:]
+    elif &#39;TME&#39; in brain:
+        fx, fy, fz = fname.split(&#39;_&#39;)[5:-2]
+        fx, fy, fz = fx[1:], fy[1:], fz[1:]
+    else:
+        raise Exception(f&#39;Invalid brain ({brain}) supplied when calling get_soma_from_fname()&#39;)
+
+    return np.array([int(fx), int(fy), int(fz)])
+
+def get_soma_from_first_line(fname, brain):
+    &#39;&#39;&#39; load an swc file.
+
+    Parameters
+    ----------
+    fname : str
+        A string pointing to the file to load
+
+    Returns
+    -------
+    V : numpy array of float
+        An array storing vertices
+    E : numpy array of int
+        An array storing edges.  they are ordered as parent -&gt; this sample
+    R : numpy array of float
+        An arrow storing radii
+
+    &#39;&#39;&#39;
+
+    with open(fname,&#39;rt&#39;) as f:
+        for i,line in enumerate(f):
+            # print(f&#39;{i}: {line}&#39;)
+            if line[0] == &#39;#&#39;:
+                continue
+
+            # print(line)
+            data = line.split()
+            # may be comma separated
+            if len(data)==1:
+                data = line.split(&#39;,&#39;)
+            sample_number = int(data[0])
+            x = float(data[2])
+            y = float(data[3])
+            z = float(data[4])
+            break
+    return x, y, z
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>brains = [&#39;TME08-1&#39;]
+
+allCol = [&#39;fname&#39;,&#39;key_name&#39;,&#39;x&#39;,&#39;y&#39;,&#39;z&#39;,&#39;slice&#39;,&#39;hemi&#39;]
+df_out = pd.DataFrame(columns=allCol)
+
+row_idx = 0
+
+start = time.time()
+for brain in brains:
+
+    # Define relevant input directory
+    # neuronDir = &#39;/home/abenneck/Desktop/tutorial_TEST_7500/step3_outputs&#39;
+    neuronDir = &#39;/home/abenneck/Desktop/tutorial_TEST_40000/step3_outputs&#39;
+
+    for i, file in enumerate(sorted(os.listdir(neuronDir))):
+        if &quot;mapped.swc&quot; in file and &#39;checkpoint&#39; not in file:
+            # Load soma coordinates
+            data = pd.read_csv(os.path.join(neuronDir,file))
+            # x, y, z = get_soma_from_fname(file, brain)
+            x, y, z = get_soma_from_first_line(os.path.join(neuronDir,file), brain)
+
+            # Get metadata from filename and initialize row
+            if brain in [&#39;hTME16-1&#39;, &#39;hTME20-1&#39;, &#39;hTME24-2&#39;]:
+                sliceID = file.split(&#39;_&#39;)[1]
+                hemiID = &#39;N/A&#39;
+            elif &#39;hTME&#39; in brain:
+                sliceID = file.split(&#39;_&#39;)[2]
+                hemiID = &#39;N/A&#39;
+            else: # TME brains
+                sliceID = file.split(&#39;_&#39;)[4][:-1]
+                hemiID = file.split(&#39;_&#39;)[4][-1]
+
+            # Generate key from &#39;file&#39; based on pattern in Ming&#39;s csv
+            if &#39;hTME&#39; in brain:
+                strOut = file[:-22]
+            else:
+                strSplits = file.split(&#39;_&#39;)
+                strOut = f&#39;{strSplits[0]}_{strSplits[1]}_{strSplits[2]}_{strSplits[3]}_{strSplits[4]}_xyz-{strSplits[5][1:]}-{strSplits[6][1:]}-{strSplits[7][1:]}&#39;
+            # print(strOut)
+
+            # row = [file, strOut, x, y, z, sliceID, hemiID, dist_cp, dist_lv, dist_3V, dist_Aq, dist_4V, dist_centCan, dist_cc, dist_brain_bound]
+            row = [file, strOut, x, y, z, sliceID, hemiID]
+            df_out.loc[row_idx] = row
+            row_idx+=1
+
+    print(f&#39;Finished {brain} in {time.time() - start} s\n&#39;)
+
+tempDir = &#39;/home/abenneck/Desktop/tutorial_pos_40000.csv&#39;
+
+if True:
+    df_out.to_csv(tempDir, index=False)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Finished TME08-1 in 0.530644416809082 s
+
+</pre></div></div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+
+# TME_morpho_path = f&#39;/home/abenneck/dragonfly_work/morpho_data/d1d2_subclusters_Dec-14-2023_share.csv&#39;
+# TME_morpho_path = f&#39;/home/abenneck/dragonfly_work/morpho_data/D1_D2_morphometrics_Mar-15-2024.csv&#39;
+# hTME_HD_morpho_path = f&#39;/home/abenneck/dragonfly_work/morpho_data/d1d2_with_clusters_2hTME_HD_results.by.Brain.Adjusted-Dec-21-2023.csv&#39;
+# hTME_WT_morpho_path = f&#39;/home/abenneck/dragonfly_work/morpho_data/d1d2_with_clusters_2hTME_WT_results.by.Brain.Adjusted-Dec-21-2023.csv&#39;
+
+# TME_morpho = pd.read_csv(TME_morpho_path)
+# hTME_HD_morpho = pd.read_csv(hTME_HD_morpho_path)
+# hTME_WT_morpho = pd.read_csv(hTME_WT_morpho_path)
+
+# TME_fnames_path = f&#39;/home/abenneck/dragonfly_work/morpho_data/D1D2_full_neuron_list_Mar-25-2024.csv&#39;
+# TME_fnames = pd.read_csv(TME_fnames_path)
+
+# TME_morpho = TME_morpho.merge(TME_fnames, how = &#39;right&#39;)
+
+TME_morpho = pd.read_csv(f&#39;/home/abenneck/dragonfly_work/morpho_data/D1_D2_morphometrics_Mar-15-2024.csv&#39;)
+hTME_morpho = pd.read_csv(f&#39;/home/abenneck/dragonfly_work/morpho_data/hTME_full_1031_neurons.csv&#39;)
+all_morpho = pd.concat([TME_morpho, hTME_morpho])
+# print(f&#39;{len(all_morpho)} neurons in morpho.csv&#39;)
+
+new_hTME_morpho = pd.read_csv(&#39;/home/abenneck/dragonfly_work/morpho_data/all_htme_brains_with_registration_all.csv&#39;)
+new_hTME_files = pd.read_csv(&#39;/home/abenneck/dragonfly_work/morpho_data/264neuron_from_3new_brains.csv&#39;)
+new_hTME_morpho = new_hTME_morpho.merge(new_hTME_files, how = &#39;right&#39;, left_on=&#39;file_path&#39;, right_on=&#39;key_name&#39;)
+new_hTME_morpho = new_hTME_morpho.drop(columns = [&#39;key_name&#39;])
+
+# saveMorpho = False
+
+# if saveMorpho:
+#     all_morpho.to_csv(f&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing/all_morpho.csv&#39;, index = False)
+</pre></div>
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>niter = 7500
+
+pos_path = f&#39;/home/abenneck/Desktop/tutorial_pos_{niter}.csv&#39;
+all_pos = pd.read_csv(pos_path)
+
+print(f&#39;{len(all_pos)} neurons in pos.csv&#39;)
+
+prob_path = f&#39;/home/abenneck/Desktop/TME08-1_neuron_region_prob_sf5_{niter}.csv&#39;
+all_prob = pd.read_csv(prob_path)
+
+print(f&#39;{len(all_prob)} neurons in prob.csv&#39;)
+
+# (02/22/24) Confirmed that all_pos[&#39;fname&#39;] == all_prob[&#39;fname&#39;]
+pos_and_prob = all_pos.merge(all_prob, how = &#39;outer&#39;)
+
+if True:
+    pos_and_prob.to_csv(f&#39;/home/abenneck/Desktop/pos_and_prob_{niter}.csv&#39;,index = False)
+    # pos_and_prob = pos_and_prob.drop(columns = [&#39;hemi&#39;, &#39;neuron ID&#39;])
+
+print(f&#39;{len(pos_and_prob)} neurons in all_pos_and_prob.csv&#39;)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+207 neurons in pos.csv
+207 neurons in prob.csv
+207 neurons in all_pos_and_prob.csv
+</pre></div></div>
+</div>
+<section id="Filter-out-neurons-not-in-the-TME-and-hTME-names-csv-files">
+<h2>Filter out neurons not in the TME and hTME names csv files<a class="headerlink" href="#Filter-out-neurons-not-in-the-TME-and-hTME-names-csv-files" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>all_TME_names = pd.read_csv(&#39;/home/abenneck/dragonfly_work/morpho_data/TME_full_2402_neuron_names.csv&#39;)
+all_hTME_names = pd.read_csv(&#39;/home/abenneck/dragonfly_work/morpho_data/hTME_full_1031_neuron_names.csv&#39;)
+all_names = pd.concat([all_TME_names, all_hTME_names])
+
+print(f&#39;{len(all_TME_names)} TME neurons&#39;)
+print(f&#39;{len(all_hTME_names)} hTME neurons&#39;)
+print(f&#39;{len(all_names)} total neurons&#39;)
+
+pos_prob_filtered = pos_and_prob.merge(all_names, left_on = &#39;key_name&#39;, right_on = &#39;file_path&#39;, how = &#39;right&#39;)
+print(f&#39;{len(pos_prob_filtered)} neurons in pos_prob_filtered.csv&#39;)
+
+pos_prob_filtered.drop(columns = [&#39;Unnamed: 0&#39;])
+if False:
+    pos_prob_filtered.to_csv(f&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing/pos_prob_filtered.csv&#39;, index = False)
+</pre></div>
+</div>
+</div>
+<section id="Merge-pos_and_prob-with-morpho">
+<h3>Merge pos_and_prob with morpho<a class="headerlink" href="#Merge-pos_and_prob-with-morpho" title="Link to this heading">¶</a></h3>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># out_df = all_morpho.merge(pos_prob_filtered, left_on = &#39;file_path&#39;, right_on = &#39;key_name&#39;, how = &#39;left&#39;)
+
+# out_df_filtered = pos_prob_filtered.merge(all_morpho, left_on = &#39;key_name&#39;, right_on = &#39;file_path&#39;, how = &#39;right&#39;)
+# out_df_filtered = out_df_filtered.drop(columns = [&#39;Unnamed: 0&#39;, &#39;file_path_y&#39;])
+# out_df_filtered = out_df_filtered.rename(columns = {&#39;file_path_x&#39;:&#39;file_path&#39;})
+
+# out_df = pos_and_prob.merge(all_morpho, left_on = &#39;key_name&#39;, right_on = &#39;file_path&#39;, how = &#39;outer&#39;)
+# out_df = out_df.drop(columns = [&#39;Unnamed: 0&#39;])
+# out_df = out_df.rename(columns = {&#39;file_path_x&#39;:&#39;file_path&#39;})
+
+pos_and_prob = pd.read_csv(&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_new_hTME/post_processing/all_pos_and_prob_new_hTME.csv&#39;)
+out_df = pos_and_prob.merge(new_hTME_morpho, how = &#39;right&#39;, left_on = &#39;key_name&#39;, right_on = &#39;file_path&#39;)
+len(out_df)
+
+# print(f&#39;{len(out_df)} neurons in pos_prob_morpho.csv&#39;)
+
+savePosProbMorpho = False
+if savePosProbMorpho:
+    # out_df_filtered.to_csv(&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing_50/pos_prob_morpho_filtered_050824.csv&#39;,index = False)
+    # out_df.to_csv(&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing/pos_prob_morpho_new_hTME_082124.csv&#39;,index = False)
+    out_df.to_csv(&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_new_hTME/post_processing/pos_prob_morpho_new_hTME_082124.csv&#39;, index = False)
+</pre></div>
+</div>
+</div>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>hTME_options = [&#39;hTME15-1&#39;,&#39;hTME15-2&#39;,&#39;hTME18-1&#39;,&#39;hTME19-2&#39;]
+TME_options = [&#39;TME07-1&#39;,&#39;TME08-1&#39;,&#39;TME09-1&#39;,&#39;TME10-1&#39;,&#39;TME10-3&#39;]
+
+num_TME = len(out_df[out_df[&#39;mouse ID&#39;].isin(TME_options)])
+num_hTME = len(out_df[out_df[&#39;mouse ID&#39;].isin(hTME_options)])
+
+print(f&#39;{num_TME} TME + {num_hTME} hTME ?= {len(out_df)} total&#39;)
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+<section id="Generate-df-only-containing-neurons-with-an-associated-Nick_pred">
+<h2>Generate df only containing neurons with an associated Nick_pred<a class="headerlink" href="#Generate-df-only-containing-neurons-with-an-associated-Nick_pred" title="Link to this heading">¶</a></h2>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[ ]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>temp_df = pos_and_prob[pos_and_prob[&#39;mouse ID&#39;].isin([&#39;TME08-1&#39;])]
+temp_df = temp_df[temp_df[&#39;slice&#39;].isin([2])]
+
+merge_df = pos_and_prob[pos_and_prob[&#39;mouse ID&#39;].isin([&#39;TME09-1&#39;])]
+merge_df = merge_df[merge_df[&#39;slice&#39;].isin([3,4,5])]
+
+pred_df = pd.concat([temp_df, merge_df])
+pred_df = pred_df.drop(columns = [&#39;Unnamed: 0&#39;])
+pred_df.head()
+
+if saveData:
+    pred_df.to_csv(&#39;/home/abenneck/dragonfly_work/dragonfly_outputs_weighted/post_processing/nick_filtered.csv&#39;, index = False)
+</pre></div>
+</div>
+</div>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Compute Neuron Regional Probabilities</a></li>
+<li><a class="reference internal" href="#0.-Define-region-IDs-and-file-locations">0. Define region IDs and file locations</a><ul>
+<li><a class="reference internal" href="#Load-UPenn-ontology-+-Generate-lists-of-descendents">Load UPenn ontology + Generate lists of descendents</a><ul>
+<li><a class="reference internal" href="#Generate-Boolean-masks-for-CP,-CPr-(+CPre),-CPi,-CPc-(+CPce)">Generate Boolean masks for CP, CPr (+CPre), CPi, CPc (+CPce)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#1.-Probability-Regional-Assignments">1. Probability Regional Assignments</a><ul>
+<li><a class="reference internal" href="#Compute-+-Save-Gaussian-parameters-for-CP">Compute + Save Gaussian parameters for CP</a></li>
+<li><a class="reference internal" href="#Compute-distance-transform-for-each-mask">Compute distance transform for each mask</a></li>
+<li><a class="reference internal" href="#Preprocessing-helper-functions">Preprocessing helper functions</a></li>
+<li><a class="reference internal" href="#Probability-computation-helper-functions">Probability computation helper functions</a></li>
+<li><a class="reference internal" href="#Postprocessing-helper-functions">Postprocessing helper functions</a><ul>
+<li><a class="reference internal" href="#Generate-probability-distributions,-assign-labels-to-neurons,-and-save-csv-files-locally">Generate probability distributions, assign labels to neurons, and save csv files locally</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#2.-Merge-csv-files-with-(position,-probability,-morphometric-features)-data">2. Merge csv files with (position, probability, morphometric features) data</a><ul>
+<li><a class="reference internal" href="#Filter-out-neurons-not-in-the-TME-and-hTME-names-csv-files">Filter out neurons not in the TME and hTME names csv files</a><ul>
+<li><a class="reference internal" href="#Merge-pos_and_prob-with-morpho">Merge pos_and_prob with morpho</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#Generate-df-only-containing-neurons-with-an-associated-Nick_pred">Generate df only containing neurons with an associated Nick_pred</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="slab_alignment_example.html"
+                          title="previous chapter">Slab Alignment Example</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/notebooks/compute_neuron_probabilities.ipynb.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<search id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="Related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="slab_alignment_example.html" title="Slab Alignment Example"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">Mouse Brain Atlas Registration 0.1 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Compute Neuron Regional Probabilities</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+    &#169; Copyright 2024, Andrew Bennecke.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 8.1.3.
+    </div>
+  </body>
+</html>
